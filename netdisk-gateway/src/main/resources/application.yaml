@@ -1,0 +1,15 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: netdisk-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.121.128:8848
+    gateway:
+      routes:
+        - id: test
+          predicates:
+            - Path=/test/**
+          uri: lb://netdisk-user

@@ -1,0 +1,9 @@
+server:
+  port: 9001
+spring:
+  application:
+    name: netdisk-user
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.121.128:8848
