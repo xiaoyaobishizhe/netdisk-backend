@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum E {
     FAIL(1000, "操作失败"),
     USERNAME_HAS_EXIST(1001, "用户名已存在"),
+    INVALID_PARAMS(1002, "参数校验失败"),
     ;
 
     private final int code;

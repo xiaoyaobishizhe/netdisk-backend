@@ -2,8 +2,12 @@ package com.xiaoyao.netdisk.user.controller;
 
 import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.user.service.UserService;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -14,7 +18,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public R<Void> register(String username, String password) {
+    public R<Void> register(@NotNull @Length(min = 1, max = 16) String username,
+                            @NotNull @Length(min = 1, max = 16) String password) {
         userService.register(username, password);
         return R.ok();
     }
