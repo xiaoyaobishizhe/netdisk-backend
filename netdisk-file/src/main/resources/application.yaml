@@ -1,0 +1,17 @@
+server:
+  port: 9002
+spring:
+  application:
+    name: netdisk-file
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.121.128:8848
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.121.128:3306/netdisk_file?connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true
+    username: root
+    password: root
+mybatis-plus:
+  global-config:
+    banner: false

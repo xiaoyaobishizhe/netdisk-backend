@@ -17,6 +17,7 @@
         <module>netdisk-user</module>
         <module>netdisk-common</module>
         <module>netdisk-gateway</module>
+        <module>netdisk-file</module>
     </modules>
 
     <properties>
@@ -24,6 +25,7 @@
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
         <hutool.version>5.8.24</hutool.version>
         <mybatis-plus.version>3.5.3.2</mybatis-plus.version>
+        <minio.version>8.5.7</minio.version>
     </properties>
 
     <dependencyManagement>
@@ -52,6 +54,11 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
