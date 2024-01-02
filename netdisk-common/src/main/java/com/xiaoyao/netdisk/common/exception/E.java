@@ -8,6 +8,8 @@ public enum E {
     USERNAME_HAS_EXIST(1001, "用户名已存在"),
     INVALID_PARAMS(1002, "参数校验失败"),
     USERNAME_OR_PASSWORD_ERROR(1003, "用户名或密码错误"),
+    NO_LOGIN(1004, "未登录"),
+    INVALID_TOKEN(1005, "无效的token"),
     ;
 
     private final int code;
