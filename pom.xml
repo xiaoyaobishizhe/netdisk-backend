@@ -18,6 +18,7 @@
         <module>netdisk-common</module>
         <module>netdisk-gateway</module>
         <module>netdisk-file</module>
+        <module>netdisk-common-web</module>
     </modules>
 
     <properties>

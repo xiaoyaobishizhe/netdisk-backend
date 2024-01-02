@@ -12,6 +12,10 @@ spring:
     url: jdbc:mysql://192.168.121.128:3306/netdisk_file?connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true
     username: root
     password: root
+  data:
+    redis:
+      host: 192.168.121.128
+      port: 6379
 mybatis-plus:
   global-config:
     banner: false

@@ -10,6 +10,7 @@ public enum E {
     USERNAME_OR_PASSWORD_ERROR(1003, "用户名或密码错误"),
     NO_LOGIN(1004, "未登录"),
     INVALID_TOKEN(1005, "无效的token"),
+    TOKEN_EXPIRED(1006, "token已过期"),
     ;
 
     private final int code;
