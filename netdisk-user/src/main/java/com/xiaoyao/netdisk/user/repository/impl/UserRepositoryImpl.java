@@ -23,4 +23,13 @@ public class UserRepositoryImpl implements UserRepository {
     public void insert(User user) {
         userMapper.insert(user);
     }
+
+    @Override
+    public User findByUsername(String username) {
+        return userMapper.selectOne(lambdaQuery(User.class)
+                .select(User::getId,
+                        User::getUsername,
+                        User::getPassword)
+                .eq(User::getUsername, username));
+    }
 }
