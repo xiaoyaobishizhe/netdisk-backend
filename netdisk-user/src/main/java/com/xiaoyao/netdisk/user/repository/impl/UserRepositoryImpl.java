@@ -28,8 +28,27 @@ public class UserRepositoryImpl implements UserRepository {
     public User findByUsername(String username) {
         return userMapper.selectOne(lambdaQuery(User.class)
                 .select(User::getId,
-                        User::getUsername,
                         User::getPassword)
                 .eq(User::getUsername, username));
+    }
+
+    @Override
+    public User findPasswordById(Long userId) {
+        return userMapper.selectOne(lambdaQuery(User.class)
+                .select(User::getPassword)
+                .eq(User::getId, userId));
+    }
+
+    @Override
+    public void update(User user) {
+        userMapper.updateById(user);
+    }
+
+    @Override
+    public User findInfoById(Long userId) {
+        return userMapper.selectOne(lambdaQuery(User.class)
+                .select(User::getNickname,
+                        User::getUsername)
+                .eq(User::getId, userId));
     }
 }

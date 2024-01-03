@@ -11,6 +11,8 @@ public enum E {
     NO_LOGIN(1004, "未登录"),
     INVALID_TOKEN(1005, "无效的token"),
     TOKEN_EXPIRED(1006, "token已过期"),
+    OLD_PASSWORD_ERROR(1007, "旧密码错误"),
+    OLD_PASSWORD_SAME_AS_NEW_PASSWORD(1008, "旧密码与新密码相同"),
     ;
 
     private final int code;

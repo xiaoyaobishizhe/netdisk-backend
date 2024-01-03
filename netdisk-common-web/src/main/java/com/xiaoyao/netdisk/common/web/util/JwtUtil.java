@@ -59,9 +59,9 @@ public class JwtUtil {
     public boolean isJwtExpire(String jwt) {
         try {
             JWTValidator.of(jwt).validateDate();
-            return true;
-        } catch (Exception e) {
             return false;
+        } catch (Exception e) {
+            return true;
         }
     }
 

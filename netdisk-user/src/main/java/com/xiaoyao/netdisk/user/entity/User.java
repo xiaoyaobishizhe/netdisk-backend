@@ -12,6 +12,8 @@ public class User {
     @TableId
     private Long id;
 
+    private String nickname;
+
     private String username;
 
     private String password;

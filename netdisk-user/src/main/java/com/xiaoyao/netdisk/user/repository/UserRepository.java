@@ -8,4 +8,10 @@ public interface UserRepository {
     void insert(User user);
 
     User findByUsername(String username);
+
+    User findPasswordById(Long userId);
+
+    void update(User user);
+
+    User findInfoById(Long userId);
 }
