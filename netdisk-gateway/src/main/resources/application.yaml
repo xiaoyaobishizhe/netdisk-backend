@@ -13,3 +13,7 @@ spring:
           predicates:
             - Path=/user/**
           uri: lb://netdisk-user
+        - id: file
+          predicates:
+            - Path=/file/**
+          uri: lb://netdisk-file

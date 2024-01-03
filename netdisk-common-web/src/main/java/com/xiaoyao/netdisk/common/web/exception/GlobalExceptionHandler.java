@@ -1,4 +1,4 @@
-package com.xiaoyao.netdisk.user.exception;
+package com.xiaoyao.netdisk.common.web.exception;
 
 import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;

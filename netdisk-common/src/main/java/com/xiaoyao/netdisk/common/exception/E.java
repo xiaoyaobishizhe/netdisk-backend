@@ -13,6 +13,8 @@ public enum E {
     TOKEN_EXPIRED(1006, "token已过期"),
     OLD_PASSWORD_ERROR(1007, "旧密码错误"),
     OLD_PASSWORD_SAME_AS_NEW_PASSWORD(1008, "旧密码与新密码相同"),
+    FOLDER_ALREADY_EXIST(1009, "文件夹已存在"),
+    FOLDER_NAME_INVALID(1010, "文件夹名称不合法"),
     ;
 
     private final int code;

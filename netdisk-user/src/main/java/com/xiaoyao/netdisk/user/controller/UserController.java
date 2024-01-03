@@ -6,10 +6,7 @@ import com.xiaoyao.netdisk.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
@@ -21,11 +18,16 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
+    @PutMapping
     public R<Void> register(@NotNull @Length(min = 6, max = 16) String username,
                             @NotNull @Length(min = 6, max = 16) String password) {
         userService.register(username, password);
         return R.ok();
+    }
+
+    @GetMapping
+    public R<UserInfoDTO> info() {
+        return R.ok(userService.info());
     }
 
     @PostMapping("/login")
@@ -38,11 +40,6 @@ public class UserController {
     public R<Void> logout() {
         userService.logout();
         return R.ok();
-    }
-
-    @GetMapping("/info")
-    public R<UserInfoDTO> info() {
-        return R.ok(userService.info());
     }
 
     @PostMapping("/password")
