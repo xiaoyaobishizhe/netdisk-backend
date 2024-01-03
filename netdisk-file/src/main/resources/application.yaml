@@ -19,3 +19,5 @@ spring:
 mybatis-plus:
   global-config:
     banner: false
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

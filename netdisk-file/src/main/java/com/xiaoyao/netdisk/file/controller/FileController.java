@@ -26,4 +26,11 @@ public class FileController {
         fileService.createFolder(parentId, folderName);
         return R.ok();
     }
+
+    @PutMapping("/name")
+    public R<Void> rename(@Pattern(regexp = "^\\d{1,19}$") String id,
+                          @NotNull @Length(min = 1, max = 250) String name) {
+        fileService.rename(id, name);
+        return R.ok();
+    }
 }

@@ -14,7 +14,9 @@ public enum E {
     OLD_PASSWORD_ERROR(1007, "旧密码错误"),
     OLD_PASSWORD_SAME_AS_NEW_PASSWORD(1008, "旧密码与新密码相同"),
     FOLDER_ALREADY_EXIST(1009, "文件夹已存在"),
-    FOLDER_NAME_INVALID(1010, "文件夹名称不合法"),
+    FILE_NAME_INVALID(1010, "文件名称不合法"),
+    FILE_NOT_EXIST(1011, "文件不存在"),
+    FILE_NAME_ALREADY_EXIST(1012, "文件名称已存在"),
     ;
 
     private final int code;

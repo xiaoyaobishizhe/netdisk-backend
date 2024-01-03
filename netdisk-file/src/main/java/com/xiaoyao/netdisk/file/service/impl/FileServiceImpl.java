@@ -22,9 +22,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void createFolder(String parentId, String folderName) {
-        if (FileNameUtil.containsInvalid(folderName)) {
-            throw new NetdiskException(E.FOLDER_NAME_INVALID);
-        }
+        checkName(folderName);
         if (userFileRepository.isExistFolder(parentId == null ? null : Long.valueOf(parentId), folderName)) {
             throw new NetdiskException(E.FOLDER_ALREADY_EXIST);
         }
@@ -37,5 +35,30 @@ public class FileServiceImpl implements FileService {
         folder.setCreateTime(LocalDateTime.now());
         folder.setUpdateTime(LocalDateTime.now());
         userFileRepository.save(folder);
+    }
+
+    @Override
+    public void rename(String fileId, String name) {
+        checkName(name);
+        // 判断父文件夹下是否存在同名文件夹或文件
+        long userId = TokenInterceptor.USER_ID.get();
+        UserFile file = userFileRepository.findNameAndParentIdById(Long.parseLong(fileId), userId);
+        if (file == null) {
+            throw new NetdiskException(E.FILE_NOT_EXIST);
+        } else if (userFileRepository.isExistName(file.getParentId(), name, userId)) {
+            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
+        }
+
+        file = new UserFile();
+        file.setId(Long.parseLong(fileId));
+        file.setName(name);
+        file.setUpdateTime(LocalDateTime.now());
+        userFileRepository.update(file);
+    }
+
+    private void checkName(String name) {
+        if (FileNameUtil.containsInvalid(name)) {
+            throw new NetdiskException(E.FILE_NAME_INVALID);
+        }
     }
 }
