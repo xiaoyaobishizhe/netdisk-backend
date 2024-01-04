@@ -1,4 +1,4 @@
-package com.xiaoyao.netdisk.user.entity;
+package com.xiaoyao.netdisk.user.repository.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

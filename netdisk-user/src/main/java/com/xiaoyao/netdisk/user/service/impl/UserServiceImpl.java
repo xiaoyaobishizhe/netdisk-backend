@@ -6,7 +6,7 @@ import com.xiaoyao.netdisk.common.util.SecureUtil;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.common.web.util.JwtUtil;
 import com.xiaoyao.netdisk.user.dto.UserInfoDTO;
-import com.xiaoyao.netdisk.user.entity.User;
+import com.xiaoyao.netdisk.user.repository.entity.User;
 import com.xiaoyao.netdisk.user.repository.UserRepository;
 import com.xiaoyao.netdisk.user.service.UserService;
 import org.springframework.stereotype.Service;

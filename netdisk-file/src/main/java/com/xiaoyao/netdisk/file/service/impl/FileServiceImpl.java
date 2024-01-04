@@ -1,23 +1,34 @@
 package com.xiaoyao.netdisk.file.service.impl;
 
 import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
-import com.xiaoyao.netdisk.file.entity.UserFile;
+import com.xiaoyao.netdisk.file.dto.ShardingDTO;
+import com.xiaoyao.netdisk.file.properties.ShardingProperties;
+import com.xiaoyao.netdisk.file.repository.ShardingRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
+import com.xiaoyao.netdisk.file.repository.entity.Sharding;
+import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.service.FileService;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 @Service
 public class FileServiceImpl implements FileService {
     private final UserFileRepository userFileRepository;
+    private final ShardingRepository shardingRepository;
+    private final ShardingProperties shardingProperties;
 
-    public FileServiceImpl(UserFileRepository userFileRepository) {
+    public FileServiceImpl(UserFileRepository userFileRepository, ShardingRepository shardingRepository,
+                           ShardingProperties shardingProperties) {
         this.userFileRepository = userFileRepository;
+        this.shardingRepository = shardingRepository;
+        this.shardingProperties = shardingProperties;
     }
 
     @Override
@@ -35,6 +46,12 @@ public class FileServiceImpl implements FileService {
         folder.setCreateTime(LocalDateTime.now());
         folder.setUpdateTime(LocalDateTime.now());
         userFileRepository.save(folder);
+    }
+
+    private void checkName(String name) {
+        if (FileNameUtil.containsInvalid(name)) {
+            throw new NetdiskException(E.FILE_NAME_INVALID);
+        }
     }
 
     @Override
@@ -56,9 +73,25 @@ public class FileServiceImpl implements FileService {
         userFileRepository.update(file);
     }
 
-    private void checkName(String name) {
-        if (FileNameUtil.containsInvalid(name)) {
-            throw new NetdiskException(E.FILE_NAME_INVALID);
+    @Override
+    public ShardingDTO createOrGetSharding(String identifier, long totalSize) {
+        // 创建分片任务前先查看是否已经存在分片任务，如果已存在则断点续传。
+        Sharding sharding = shardingRepository.findByIdentifier(identifier, TokenInterceptor.USER_ID.get());
+        if (sharding == null) {
+            sharding = new Sharding();
+            sharding.setUserId(TokenInterceptor.USER_ID.get());
+            sharding.setIdentifier(identifier);
+            sharding.setChunkSize(shardingProperties.getChunkSize());
+            sharding.setCurrentChunk(0);
+            sharding.setTotalChunk((int) NumberUtil.div(totalSize, (long) shardingProperties.getChunkSize(),
+                    0, RoundingMode.CEILING));
+            shardingRepository.save(sharding);
         }
+
+        ShardingDTO dto = new ShardingDTO();
+        dto.setChunkSize(sharding.getChunkSize());
+        dto.setCurrentChunk(sharding.getCurrentChunk());
+        dto.setTotalChunk(sharding.getTotalChunk());
+        return dto;
     }
 }

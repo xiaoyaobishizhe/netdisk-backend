@@ -1,6 +1,6 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
-import com.xiaoyao.netdisk.file.entity.UserFile;
+import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Repository;

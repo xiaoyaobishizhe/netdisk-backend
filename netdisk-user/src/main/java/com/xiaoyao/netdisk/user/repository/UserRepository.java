@@ -1,6 +1,6 @@
 package com.xiaoyao.netdisk.user.repository;
 
-import com.xiaoyao.netdisk.user.entity.User;
+import com.xiaoyao.netdisk.user.repository.entity.User;
 
 public interface UserRepository {
     boolean isExistUsername(String username);

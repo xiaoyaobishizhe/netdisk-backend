@@ -1,6 +1,6 @@
 package com.xiaoyao.netdisk.file.repository;
 
-import com.xiaoyao.netdisk.file.entity.UserFile;
+import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 
 public interface UserFileRepository {
     /**
