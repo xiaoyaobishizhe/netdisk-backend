@@ -23,7 +23,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 netdisk:
   sharding:
-    chunk-size: 209715200
+    min-chunk-size: 10485760
 minio:
   endpoint: http://192.168.121.128:9000
   access-key: nHR0h841LJPXIz6U08uj

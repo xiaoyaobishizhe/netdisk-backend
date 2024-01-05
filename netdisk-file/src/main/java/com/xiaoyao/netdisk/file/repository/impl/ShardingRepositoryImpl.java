@@ -6,6 +6,7 @@ import com.xiaoyao.netdisk.file.repository.mapper.ShardingMapper;
 import org.springframework.stereotype.Repository;
 
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
+import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaUpdate;
 
 @Repository
 public class ShardingRepositoryImpl implements ShardingRepository {
@@ -19,6 +20,8 @@ public class ShardingRepositoryImpl implements ShardingRepository {
     public Sharding findByIdentifier(String identifier, long userId) {
         return shardingMapper.selectOne(lambdaQuery(Sharding.class)
                 .select(Sharding::getChunkSize,
+                        Sharding::getFilename,
+                        Sharding::getSize,
                         Sharding::getCurrentChunk,
                         Sharding::getTotalChunk)
                 .eq(Sharding::getUserId, userId)
@@ -28,5 +31,20 @@ public class ShardingRepositoryImpl implements ShardingRepository {
     @Override
     public void save(Sharding sharding) {
         shardingMapper.insert(sharding);
+    }
+
+    @Override
+    public void delete(String identifier) {
+        shardingMapper.delete(lambdaQuery(Sharding.class)
+                .eq(Sharding::getIdentifier, identifier));
+    }
+
+    @Override
+    public boolean incrementChunkNumber(String identifier, int chunkNumber, long userId) {
+        return shardingMapper.update(null, lambdaUpdate(Sharding.class)
+                .set(Sharding::getCurrentChunk, chunkNumber)
+                .eq(Sharding::getIdentifier, identifier)
+                .eq(Sharding::getUserId, userId)
+                .eq(Sharding::getCurrentChunk, chunkNumber - 1)) == 1;
     }
 }

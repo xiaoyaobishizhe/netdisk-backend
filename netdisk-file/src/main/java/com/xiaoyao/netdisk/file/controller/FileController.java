@@ -42,14 +42,28 @@ public class FileController {
 
     @PutMapping("/sharding")
     public R<ShardingDTO> sharding(@NotBlank String identifier,
+                                   @Pattern(regexp = "^\\d{1,19}$") String parentId,
                                    @NotNull @Length(min = 1, max = 250) String filename,
-                                   @NotNull @Pattern(regexp = "^\\d{1,19}$") String totalSize) {
-        return R.ok(fileService.createOrGetSharding(identifier, filename, Long.parseLong(totalSize)));
+                                   @Pattern(regexp = "^\\d{1,19}$") String size) {
+        return R.ok(fileService.createOrGetSharding(identifier, parentId, Long.parseLong(size), filename));
     }
 
     @PostMapping("/apply-upload-chunk")
     public R<Map<String, String>> applyUploadChunk(@NotBlank String identifier,
                                                    @NotNull @Min(1) String chunkNumber) {
         return R.ok(fileService.applyUploadChunk(identifier, Integer.parseInt(chunkNumber)));
+    }
+
+    @PostMapping("/upload-chunk")
+    public R<Void> uploadChunk(@NotBlank String identifier,
+                               @NotNull @Min(1) String chunkNumber) {
+        fileService.uploadChunk(identifier, Integer.parseInt(chunkNumber));
+        return R.ok();
+    }
+
+    @PostMapping("/finish-upload-chunk")
+    public R<Void> finishUploadChunk(@NotBlank String identifier) {
+        fileService.finishUploadChunk(identifier);
+        return R.ok();
     }
 }

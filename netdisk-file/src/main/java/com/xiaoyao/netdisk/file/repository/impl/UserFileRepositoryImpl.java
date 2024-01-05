@@ -32,6 +32,13 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
+    public boolean isExistParentId(long parentId, long userId) {
+        return userFileMapper.selectCount(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getParentId, parentId)) > 0;
+    }
+
+    @Override
     public void save(UserFile userFile) {
         userFileMapper.insert(userFile);
     }

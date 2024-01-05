@@ -9,7 +9,11 @@ public interface FileService {
 
     void rename(String fileId, String name);
 
-    ShardingDTO createOrGetSharding(String identifier, String filename, long totalSize);
+    ShardingDTO createOrGetSharding(String identifier, String parentId, long size, String filename);
 
-    Map<String, String> applyUploadChunk(String identifier, int i);
+    Map<String, String> applyUploadChunk(String identifier, int chunkNumber);
+
+    void finishUploadChunk(String identifier);
+
+    void uploadChunk(String identifier, int chunkNumber);
 }

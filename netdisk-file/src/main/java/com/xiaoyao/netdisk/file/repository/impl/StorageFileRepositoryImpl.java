@@ -1,6 +1,7 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
 import com.xiaoyao.netdisk.file.repository.StorageFileRepository;
+import com.xiaoyao.netdisk.file.repository.entity.StorageFile;
 import com.xiaoyao.netdisk.file.repository.mapper.StorageFileMapper;
 import org.springframework.stereotype.Repository;
 
@@ -10,5 +11,10 @@ public class StorageFileRepositoryImpl implements StorageFileRepository {
 
     public StorageFileRepositoryImpl(StorageFileMapper storageFileMapper) {
         this.storageFileMapper = storageFileMapper;
+    }
+
+    @Override
+    public void save(StorageFile storageFile) {
+        storageFileMapper.insert(storageFile);
     }
 }

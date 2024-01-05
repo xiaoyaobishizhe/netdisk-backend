@@ -19,6 +19,11 @@ public class Sharding {
     private Long userId;
 
     /**
+     * 父文件夹主键值
+     */
+    private Long parentId;
+
+    /**
      * 文件本身的唯一标识
      */
     private String identifier;
@@ -27,6 +32,11 @@ public class Sharding {
      * 文件名称
      */
     private String filename;
+
+    /**
+     * 文件大小，单位为字节
+     */
+    private Long size;
 
     /**
      * 块的最大大小，单位为字节

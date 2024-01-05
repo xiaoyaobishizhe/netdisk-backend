@@ -19,6 +19,9 @@ public enum E {
     FILE_NAME_ALREADY_EXIST(1012, "文件名称已存在"),
     NO_SHADING_TASK(1013, "没有可用的分片任务"),
     INVALID_SHADING_CHUNK(1014, "无效的分片序号"),
+    SHADING_TASK_NOT_COMPLETE(1015, "分片任务未完成"),
+    PARENT_FOLDER_NOT_EXIST(1016, "父文件夹不存在"),
+    FILE_SIZE_TOO_SMALL_TO_SHADING(1017, "文件大小太小，无法进行分片上传"),
     ;
 
     private final int code;

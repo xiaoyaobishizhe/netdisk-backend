@@ -13,6 +13,8 @@ public interface UserFileRepository {
      */
     boolean isExistName(Long parentId, String name, long userId);
 
+    boolean isExistParentId(long parentId, long userId);
+
     void save(UserFile userFile);
 
     UserFile findNameAndParentIdById(long fileId, long userId);
