@@ -24,6 +24,11 @@ public class Sharding {
     private String identifier;
 
     /**
+     * 文件名称
+     */
+    private String filename;
+
+    /**
      * 块的最大大小，单位为字节
      */
     private Integer chunkSize;

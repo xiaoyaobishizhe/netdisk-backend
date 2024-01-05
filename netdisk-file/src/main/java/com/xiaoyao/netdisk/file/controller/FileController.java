@@ -3,14 +3,18 @@ package com.xiaoyao.netdisk.file.controller;
 import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.service.FileService;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @Validated
 @RestController
@@ -38,7 +42,14 @@ public class FileController {
 
     @PutMapping("/sharding")
     public R<ShardingDTO> sharding(@NotBlank String identifier,
+                                   @NotNull @Length(min = 1, max = 250) String filename,
                                    @NotNull @Pattern(regexp = "^\\d{1,19}$") String totalSize) {
-        return R.ok(fileService.createOrGetSharding(identifier, Long.parseLong(totalSize)));
+        return R.ok(fileService.createOrGetSharding(identifier, filename, Long.parseLong(totalSize)));
+    }
+
+    @PostMapping("/apply-upload-chunk")
+    public R<Map<String, String>> applyUploadChunk(@NotBlank String identifier,
+                                                   @NotNull @Min(1) String chunkNumber) {
+        return R.ok(fileService.applyUploadChunk(identifier, Integer.parseInt(chunkNumber)));
     }
 }

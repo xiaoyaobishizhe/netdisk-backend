@@ -24,3 +24,8 @@ mybatis-plus:
 netdisk:
   sharding:
     chunk-size: 209715200
+minio:
+  endpoint: http://192.168.121.128:9000
+  access-key: nHR0h841LJPXIz6U08uj
+  secret-key: fG0asj2CPlJz9zE9gPZb3Z7aQUPLMfOwpkJ1c1QF
+  bucket: netdisk

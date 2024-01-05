@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("netdisk.sharding")
 public class ShardingProperties {
     /**
-     * 块的最大大小，单位为字节，默认为200MB。
+     * 块的最大大小，单位为字节，默认为10MB。
      */
-    private Integer chunkSize = 200 * 1024 * 1024;
+    private Integer chunkSize = 10 * 1024 * 1024;
 }

@@ -17,6 +17,8 @@ public enum E {
     FILE_NAME_INVALID(1010, "文件名称不合法"),
     FILE_NOT_EXIST(1011, "文件不存在"),
     FILE_NAME_ALREADY_EXIST(1012, "文件名称已存在"),
+    NO_SHADING_TASK(1013, "没有可用的分片任务"),
+    INVALID_SHADING_CHUNK(1014, "无效的分片序号"),
     ;
 
     private final int code;
