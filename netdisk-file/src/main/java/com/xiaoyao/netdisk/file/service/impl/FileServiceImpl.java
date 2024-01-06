@@ -99,6 +99,8 @@ public class FileServiceImpl implements FileService {
             throw new NetdiskException(E.PARENT_FOLDER_NOT_EXIST);
         }
 
+        // TODO 创建分片任务前先检查同名文件是否存在
+
         // 创建分片任务前先查看是否已经存在分片任务，如果已存在则断点续传。
         Sharding sharding = shardingRepository.findByIdentifier(identifier, userId);
         if (sharding == null) {
@@ -148,6 +150,7 @@ public class FileServiceImpl implements FileService {
             policy.addContentLengthRangeCondition(1, sharding.getChunkSize());
             policy.addEqualsCondition("key", StrUtil.format("chunk/{}/{}", identifier, chunkNumber));
             formData = minioClient.getPresignedPostFormData(policy);
+            System.out.println(formData);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -183,7 +186,10 @@ public class FileServiceImpl implements FileService {
             minioClient.composeObject(
                     ComposeObjectArgs.builder()
                             .bucket(minioProperties.getBucket())
-                            .object(StrUtil.format("file/{}", storageFilename))
+                            // 为MinIO中的文件添加后缀名，以便MinIO能够自动识别出文件类型。
+                            .object(StrUtil.format("file/{}{}", storageFilename,
+                                    FileNameUtil.extName(sharding.getFilename()).isEmpty() ?
+                                            "" : "." + FileNameUtil.extName(sharding.getFilename())))
                             .sources(chunks)
                             .build());
         } catch (Exception e) {
@@ -194,7 +200,9 @@ public class FileServiceImpl implements FileService {
         shardingRepository.delete(identifier);
 
         StorageFile storageFile = new StorageFile();
-        storageFile.setPath(StrUtil.format("file/{}", storageFilename));
+        storageFile.setPath(StrUtil.format("file/{}{}", storageFilename,
+                FileNameUtil.extName(sharding.getFilename()).isEmpty() ?
+                        "" : "." + FileNameUtil.extName(sharding.getFilename())));
         storageFileRepository.save(storageFile);
 
         UserFile file = new UserFile();
