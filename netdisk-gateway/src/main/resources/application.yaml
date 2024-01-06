@@ -8,6 +8,12 @@ spring:
       discovery:
         server-addr: 192.168.121.128:8848
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
       routes:
         - id: user
           predicates:
