@@ -1,8 +1,7 @@
 package com.xiaoyao.netdisk.file.service;
 
+import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
-
-import java.util.Map;
 
 public interface FileService {
     void createFolder(String parentId, String folderName);
@@ -11,7 +10,7 @@ public interface FileService {
 
     ShardingDTO createOrGetSharding(String identifier, String parentId, long size, String filename);
 
-    Map<String, String> applyUploadChunk(String identifier, int chunkNumber);
+    ApplyUploadChunkDTO applyUploadChunk(String identifier, int chunkNumber);
 
     void finishUploadChunk(String identifier);
 

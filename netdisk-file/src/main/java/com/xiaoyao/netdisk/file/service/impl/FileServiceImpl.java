@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
+import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.properties.MinioProperties;
 import com.xiaoyao.netdisk.file.properties.ShardingProperties;
@@ -131,7 +132,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Map<String, String> applyUploadChunk(String identifier, int chunkNumber) {
+    public ApplyUploadChunkDTO applyUploadChunk(String identifier, int chunkNumber) {
         Sharding sharding = shardingRepository.findByIdentifier(identifier, TokenInterceptor.USER_ID.get());
         if (sharding == null) {
             // 不存在分片任务
@@ -150,7 +151,12 @@ public class FileServiceImpl implements FileService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return formData;
+
+        ApplyUploadChunkDTO dto = new ApplyUploadChunkDTO();
+        dto.setKey(StrUtil.format("chunk/{}/{}", identifier, chunkNumber));
+        dto.setFormData(formData);
+        dto.setUploadUrl(minioProperties.getEndpoint() + "/" + minioProperties.getBucket());
+        return dto;
     }
 
     @Override

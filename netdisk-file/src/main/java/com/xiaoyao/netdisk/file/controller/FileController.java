@@ -1,6 +1,7 @@
 package com.xiaoyao.netdisk.file.controller;
 
 import com.xiaoyao.netdisk.common.exception.R;
+import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.service.FileService;
 import jakarta.validation.constraints.Min;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @Validated
 @RestController
@@ -49,7 +48,7 @@ public class FileController {
     }
 
     @PostMapping("/apply-upload-chunk")
-    public R<Map<String, String>> applyUploadChunk(@NotBlank String identifier,
+    public R<ApplyUploadChunkDTO> applyUploadChunk(@NotBlank String identifier,
                                                    @NotNull @Min(1) String chunkNumber) {
         return R.ok(fileService.applyUploadChunk(identifier, Integer.parseInt(chunkNumber)));
     }
