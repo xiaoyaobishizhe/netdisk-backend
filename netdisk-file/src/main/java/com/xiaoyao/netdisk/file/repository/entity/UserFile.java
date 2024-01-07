@@ -36,6 +36,11 @@ public class UserFile {
     private Boolean isFolder;
 
     /**
+     * 文件的唯一标识
+     */
+    private String identifier;
+
+    /**
      * 存储文件主键值
      */
     private Long storageFileId;

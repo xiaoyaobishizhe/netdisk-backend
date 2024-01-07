@@ -14,6 +14,11 @@ public class StorageFile {
     private Long id;
 
     /**
+     * 文件唯一标识
+     */
+    private String identifier;
+
+    /**
      * 在存储库中的路径
      */
     private String path;

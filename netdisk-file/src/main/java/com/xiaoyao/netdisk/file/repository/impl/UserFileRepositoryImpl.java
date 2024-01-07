@@ -16,14 +16,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public boolean isExistFolder(Long parentId, String folderName) {
-        return userFileMapper.selectCount(lambdaQuery(UserFile.class)
-                .eq(parentId != null, UserFile::getParentId, parentId)
-                .eq(UserFile::getName, folderName)) > 0;
-    }
-
-    @Override
-    public boolean isExistName(Long parentId, String name, long userId) {
+    public boolean isNameExist(Long parentId, String name, long userId) {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
                 .isNull(parentId == null, UserFile::getParentId)
@@ -32,10 +25,21 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public boolean isExistParentId(long parentId, long userId) {
+    public boolean isFolderExist(long folderId, long userId) {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getParentId, parentId)) > 0;
+                .eq(UserFile::getId, folderId)
+                .eq(UserFile::getIsFolder, true)) > 0;
+    }
+
+    @Override
+    public UserFile findIdentifierById(Long folderId, String name, long userId) {
+        return userFileMapper.selectOne(lambdaQuery(UserFile.class)
+                .select(UserFile::getIdentifier)
+                .eq(UserFile::getUserId, userId)
+                .isNull(folderId == null, UserFile::getParentId)
+                .eq(folderId != null, UserFile::getParentId, folderId)
+                .eq(UserFile::getName, name));
     }
 
     @Override
@@ -44,12 +48,12 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public UserFile findNameAndParentIdById(long fileId, long userId) {
+    public UserFile findIsFolderById(long i, long userId) {
         return userFileMapper.selectOne(lambdaQuery(UserFile.class)
-                .select(UserFile::getName,
+                .select(UserFile::getIsFolder,
                         UserFile::getParentId)
-                .eq(UserFile::getId, fileId)
-                .eq(UserFile::getUserId, userId));
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getId, i));
     }
 
     @Override

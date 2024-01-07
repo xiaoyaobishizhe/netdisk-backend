@@ -5,6 +5,8 @@ import com.xiaoyao.netdisk.file.repository.entity.StorageFile;
 import com.xiaoyao.netdisk.file.repository.mapper.StorageFileMapper;
 import org.springframework.stereotype.Repository;
 
+import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
+
 @Repository
 public class StorageFileRepositoryImpl implements StorageFileRepository {
     private final StorageFileMapper storageFileMapper;
@@ -16,5 +18,11 @@ public class StorageFileRepositoryImpl implements StorageFileRepository {
     @Override
     public void save(StorageFile storageFile) {
         storageFileMapper.insert(storageFile);
+    }
+
+    @Override
+    public boolean isIdentifierExist(String identifier) {
+        return storageFileMapper.selectCount(lambdaQuery(StorageFile.class)
+                .eq(StorageFile::getIdentifier, identifier)) > 0;
     }
 }

@@ -9,4 +9,8 @@ public class ShardingDTO {
     private Integer currentChunk;
 
     private Integer totalChunk;
+
+    private boolean canSecUpload;
+
+    private boolean existSameFile;
 }

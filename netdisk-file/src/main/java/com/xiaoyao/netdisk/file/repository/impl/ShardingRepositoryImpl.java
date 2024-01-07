@@ -17,6 +17,16 @@ public class ShardingRepositoryImpl implements ShardingRepository {
     }
 
     @Override
+    public Sharding findProgressByIdentifier(String identifier, long userId) {
+        return shardingMapper.selectOne(lambdaQuery(Sharding.class)
+                .select(Sharding::getChunkSize,
+                        Sharding::getCurrentChunk,
+                        Sharding::getTotalChunk)
+                .eq(Sharding::getUserId, userId)
+                .eq(Sharding::getIdentifier, identifier));
+    }
+
+    @Override
     public Sharding findByIdentifier(String identifier, long userId) {
         return shardingMapper.selectOne(lambdaQuery(Sharding.class)
                 .select(Sharding::getChunkSize,

@@ -1,5 +1,6 @@
 package com.xiaoyao.netdisk.file.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.IdUtil;
@@ -50,13 +51,20 @@ public class FileServiceImpl implements FileService {
     @Override
     public void createFolder(String parentId, String folderName) {
         checkName(folderName);
-        if (userFileRepository.isExistFolder(parentId == null ? null : Long.valueOf(parentId), folderName)) {
-            throw new NetdiskException(E.FOLDER_ALREADY_EXIST);
+        long userId = TokenInterceptor.USER_ID.get();
+        Long pid = StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId);
+        if (pid != null && !userFileRepository.isFolderExist(pid, userId)) {
+            // 父文件夹不存在
+            throw new NetdiskException(E.PARENT_FOLDER_NOT_EXIST);
+        }
+        if (userFileRepository.isNameExist(pid, folderName, userId)) {
+            // 存在同名文件或文件夹，更改文件夹名称。
+            folderName = newFolderName(folderName);
         }
 
         UserFile folder = new UserFile();
-        folder.setUserId(TokenInterceptor.USER_ID.get());
-        folder.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
+        folder.setUserId(userId);
+        folder.setParentId(pid);
         folder.setName(folderName);
         folder.setIsFolder(true);
         folder.setCreateTime(LocalDateTime.now());
@@ -73,41 +81,70 @@ public class FileServiceImpl implements FileService {
     @Override
     public void rename(String fileId, String name) {
         checkName(name);
-        // 判断父文件夹下是否存在同名文件夹或文件
+        long fid = Long.parseLong(fileId);
         long userId = TokenInterceptor.USER_ID.get();
-        UserFile file = userFileRepository.findNameAndParentIdById(Long.parseLong(fileId), userId);
-        if (file == null) {
+        UserFile userFile = userFileRepository.findIsFolderById(fid, userId);
+        if (userFile == null) {
+            // 文件不存在
             throw new NetdiskException(E.FILE_NOT_EXIST);
-        } else if (userFileRepository.isExistName(file.getParentId(), name, userId)) {
-            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
+        } else if (userFileRepository.isNameExist(userFile.getParentId(), name, userId)) {
+            // 存在同名文件或文件夹，更改名称。
+            if (userFile.getIsFolder()) {
+                name = newFolderName(name);
+            } else {
+                name = newFileName(userFile.getParentId(), name, userId);
+            }
         }
 
-        file = new UserFile();
-        file.setId(Long.parseLong(fileId));
-        file.setName(name);
-        file.setUpdateTime(LocalDateTime.now());
-        userFileRepository.update(file);
+        userFile = new UserFile();
+        userFile.setId(fid);
+        userFile.setName(name);
+        userFile.setUpdateTime(LocalDateTime.now());
+        userFileRepository.update(userFile);
     }
 
     @Override
     public ShardingDTO createOrGetSharding(String identifier, String parentId, long size, String filename) {
+        checkName(filename);
+        long userId = TokenInterceptor.USER_ID.get();
+        Long folderId = StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId);
         if (size < shardingProperties.getMinChunkSize()) {
+            // 文件太小，不需要分片
             throw new NetdiskException(E.FILE_SIZE_TOO_SMALL_TO_SHADING);
         }
-        long userId = TokenInterceptor.USER_ID.get();
-        if (StrUtil.isNotBlank(parentId) && !userFileRepository.isExistParentId(Long.parseLong(parentId), userId)) {
+        if (storageFileRepository.isIdentifierExist(identifier)) {
+            // 文件已存在，直接秒传。
+            ShardingDTO dto = new ShardingDTO();
+            dto.setCanSecUpload(true);
+            return dto;
+        }
+        if (folderId != null && !userFileRepository.isFolderExist(folderId, userId)) {
+            // 父文件夹不存在
             throw new NetdiskException(E.PARENT_FOLDER_NOT_EXIST);
         }
+        UserFile existedFile = userFileRepository.findIdentifierById(folderId, filename, userId);
+        if (existedFile != null) {
+            if (existedFile.getIdentifier() == null) {
+                // 存在同名的文件夹，更改文件名。
+                filename = newFileName(folderId, filename, userId);
+            } else if (existedFile.getIdentifier().equals(identifier)) {
+                // 存在同名文件，但是是同一个文件，直接返回。
+                ShardingDTO dto = new ShardingDTO();
+                dto.setExistSameFile(true);
+                return dto;
+            } else {
+                // 存在同名文件，但是不是同一个文件，更改文件名。
+                filename = newFileName(folderId, filename, userId);
+            }
+        }
 
-        // TODO 创建分片任务前先检查同名文件是否存在
-
-        // 创建分片任务前先查看是否已经存在分片任务，如果已存在则断点续传。
-        Sharding sharding = shardingRepository.findByIdentifier(identifier, userId);
+        // 分片任务不存在则创建一个新的分片任务，如果已存在则返回已有的分片任务以支持断点续传。
+        Sharding sharding = shardingRepository.findProgressByIdentifier(identifier, userId);
         if (sharding == null) {
             sharding = new Sharding();
             sharding.setUserId(userId);
             sharding.setIdentifier(identifier);
-            sharding.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
+            sharding.setParentId(folderId);
             sharding.setFilename(filename);
             sharding.setSize(size);
             Pair<Integer, Integer> pair = computeChunkSizeAndCount(size);
@@ -124,6 +161,20 @@ public class FileServiceImpl implements FileService {
         return dto;
     }
 
+    private String newFolderName(String filename) {
+        return filename + "_" + DateUtil.format(LocalDateTime.now(), "yyyyMMdd_HHmmss");
+    }
+
+    private String newFileName(Long parentId, String filename, long userId) {
+
+        int i = 1;
+        do {
+            filename = StrUtil.format("{}({})", filename, i);
+            i++;
+        } while (userFileRepository.isNameExist(parentId, filename, userId));
+        return filename;
+    }
+
     private Pair<Integer, Integer> computeChunkSizeAndCount(long size) {
         int chunkSize = shardingProperties.getMinChunkSize();
         int count = (int) (size / chunkSize);
@@ -135,7 +186,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public ApplyUploadChunkDTO applyUploadChunk(String identifier, int chunkNumber) {
-        Sharding sharding = shardingRepository.findByIdentifier(identifier, TokenInterceptor.USER_ID.get());
+        Sharding sharding = shardingRepository.findProgressByIdentifier(identifier, TokenInterceptor.USER_ID.get());
         if (sharding == null) {
             // 不存在分片任务
             throw new NetdiskException(E.NO_SHADING_TASK);
@@ -195,26 +246,6 @@ public class FileServiceImpl implements FileService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        // 删除分片任务
-        shardingRepository.delete(identifier);
-
-        StorageFile storageFile = new StorageFile();
-        storageFile.setPath(StrUtil.format("file/{}{}", storageFilename,
-                FileNameUtil.extName(sharding.getFilename()).isEmpty() ?
-                        "" : "." + FileNameUtil.extName(sharding.getFilename())));
-        storageFileRepository.save(storageFile);
-
-        UserFile file = new UserFile();
-        file.setUserId(TokenInterceptor.USER_ID.get());
-        file.setParentId(sharding.getParentId());
-        file.setName(sharding.getFilename());
-        file.setIsFolder(false);
-        file.setStorageFileId(storageFile.getId());
-        file.setCreateTime(LocalDateTime.now());
-        file.setUpdateTime(LocalDateTime.now());
-        userFileRepository.save(file);
-
         // 删除分片
         for (int i = 1; i <= sharding.getTotalChunk(); i++) {
             try {
@@ -226,6 +257,28 @@ public class FileServiceImpl implements FileService {
                 throw new RuntimeException(e);
             }
         }
+
+        // 删除分片任务
+        shardingRepository.delete(identifier);
+
+        // 保存文件信息
+        StorageFile storageFile = new StorageFile();
+        storageFile.setIdentifier(identifier);
+        storageFile.setPath(StrUtil.format("file/{}{}", storageFilename,
+                FileNameUtil.extName(sharding.getFilename()).isEmpty() ?
+                        "" : "." + FileNameUtil.extName(sharding.getFilename())));
+        storageFileRepository.save(storageFile);
+
+        // 保存文件信息到用户文件表
+        UserFile file = new UserFile();
+        file.setUserId(TokenInterceptor.USER_ID.get());
+        file.setParentId(sharding.getParentId());
+        file.setName(sharding.getFilename());
+        file.setIsFolder(false);
+        file.setStorageFileId(storageFile.getId());
+        file.setCreateTime(LocalDateTime.now());
+        file.setUpdateTime(LocalDateTime.now());
+        userFileRepository.save(file);
     }
 
     @Override
