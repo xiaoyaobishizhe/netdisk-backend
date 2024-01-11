@@ -2,6 +2,8 @@ package com.xiaoyao.netdisk.file.repository;
 
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 
+import java.util.List;
+
 public interface UserFileRepository {
     /**
      * 判断在指定文件夹下名称是否存在。
@@ -37,4 +39,6 @@ public interface UserFileRepository {
     UserFile findIsFolderById(long id, long userId);
 
     void update(UserFile file);
+
+    List<UserFile> findListByParentId(Long parentId, long userId);
 }

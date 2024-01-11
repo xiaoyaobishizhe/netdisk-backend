@@ -5,6 +5,8 @@ import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
 
 @Repository
@@ -59,5 +61,17 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     @Override
     public void update(UserFile file) {
         userFileMapper.updateById(file);
+    }
+
+    @Override
+    public List<UserFile> findListByParentId(Long parentId, long userId) {
+        return userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .select(UserFile::getId,
+                        UserFile::getName,
+                        UserFile::getIsFolder,
+                        UserFile::getUpdateTime)
+                .eq(UserFile::getUserId, userId)
+                .isNull(parentId == null, UserFile::getParentId)
+                .eq(parentId != null, UserFile::getParentId, parentId));
     }
 }

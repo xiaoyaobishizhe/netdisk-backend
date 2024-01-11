@@ -1,6 +1,7 @@
 package com.xiaoyao.netdisk.file.service;
 
 import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
+import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 
 public interface FileService {
@@ -15,4 +16,6 @@ public interface FileService {
     void finishUploadChunk(String identifier);
 
     void uploadChunk(String identifier, int chunkNumber);
+
+    FileListDTO list(String parentId);
 }

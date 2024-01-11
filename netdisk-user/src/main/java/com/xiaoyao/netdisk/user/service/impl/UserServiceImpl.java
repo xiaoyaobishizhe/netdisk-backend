@@ -72,7 +72,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findInfoById(TokenInterceptor.USER_ID.get());
         UserInfoDTO dto = new UserInfoDTO();
         dto.setNickname(user.getNickname());
-        dto.setUsername(user.getUsername());
         return dto;
     }
 }

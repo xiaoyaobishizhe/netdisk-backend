@@ -9,6 +9,7 @@ import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
+import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.properties.MinioProperties;
 import com.xiaoyao.netdisk.file.properties.ShardingProperties;
@@ -286,5 +287,24 @@ public class FileServiceImpl implements FileService {
         if (!shardingRepository.incrementChunkNumber(identifier, chunkNumber, TokenInterceptor.USER_ID.get())) {
             throw new NetdiskException(E.INVALID_SHADING_CHUNK);
         }
+    }
+
+    @Override
+    public FileListDTO list(String parentId) {
+        long userId = TokenInterceptor.USER_ID.get();
+        List<UserFile> files = userFileRepository.findListByParentId(
+                StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId), userId);
+        FileListDTO dto = new FileListDTO();
+        List<FileListDTO.Item> items = new ArrayList<>();
+        dto.setFiles(items);
+        for (UserFile file : files) {
+            FileListDTO.Item item = new FileListDTO.Item();
+            item.setId(file.getId().toString());
+            item.setName(file.getName());
+            item.setFolder(file.getIsFolder());
+            item.setUpdateTime(DateUtil.format(file.getUpdateTime(), "yyyy-MM-dd HH:mm:ss"));
+            items.add(item);
+        }
+        return dto;
     }
 }
