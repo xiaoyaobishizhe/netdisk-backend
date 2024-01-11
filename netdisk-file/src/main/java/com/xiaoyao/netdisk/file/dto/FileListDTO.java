@@ -13,6 +13,7 @@ public class FileListDTO {
         private String id;
         private String name;
         private boolean isFolder;
+        private Long size;
         private String updateTime;
     }
 }

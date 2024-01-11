@@ -36,6 +36,11 @@ public class UserFile {
     private Boolean isFolder;
 
     /**
+     * 文件大小
+     */
+    private Long size;
+
+    /**
      * 文件的唯一标识
      */
     private String identifier;

@@ -276,6 +276,7 @@ public class FileServiceImpl implements FileService {
         file.setParentId(sharding.getParentId());
         file.setName(sharding.getFilename());
         file.setIsFolder(false);
+        file.setSize(sharding.getSize());
         file.setStorageFileId(storageFile.getId());
         file.setCreateTime(LocalDateTime.now());
         file.setUpdateTime(LocalDateTime.now());
@@ -302,6 +303,7 @@ public class FileServiceImpl implements FileService {
             item.setId(file.getId().toString());
             item.setName(file.getName());
             item.setFolder(file.getIsFolder());
+            item.setSize(file.getSize());
             item.setUpdateTime(DateUtil.format(file.getUpdateTime(), "yyyy-MM-dd HH:mm:ss"));
             items.add(item);
         }

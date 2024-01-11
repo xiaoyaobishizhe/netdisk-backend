@@ -69,6 +69,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .select(UserFile::getId,
                         UserFile::getName,
                         UserFile::getIsFolder,
+                        UserFile::getSize,
                         UserFile::getUpdateTime)
                 .eq(UserFile::getUserId, userId)
                 .isNull(parentId == null, UserFile::getParentId)
