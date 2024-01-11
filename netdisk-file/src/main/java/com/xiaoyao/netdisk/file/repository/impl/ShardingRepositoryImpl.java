@@ -31,6 +31,7 @@ public class ShardingRepositoryImpl implements ShardingRepository {
         return shardingMapper.selectOne(lambdaQuery(Sharding.class)
                 .select(Sharding::getChunkSize,
                         Sharding::getFilename,
+                        Sharding::getParentId,
                         Sharding::getSize,
                         Sharding::getCurrentChunk,
                         Sharding::getTotalChunk)
