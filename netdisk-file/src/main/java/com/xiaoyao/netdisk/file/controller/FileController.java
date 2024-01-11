@@ -24,14 +24,14 @@ public class FileController {
     }
 
     @PutMapping("/folder")
-    public R<Void> createFolder(@Pattern(regexp = "^\\d{1,19}$") String parentId,
+    public R<Void> createFolder(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId,
                                 @NotNull @Length(min = 1, max = 250) String folderName) {
         fileService.createFolder(parentId, folderName);
         return R.ok();
     }
 
     @PutMapping("/name")
-    public R<Void> rename(@Pattern(regexp = "^\\d{1,19}$") String id,
+    public R<Void> rename(@Pattern(regexp = "(^\\d{1,19}$)?") String id,
                           @NotNull @Length(min = 1, max = 250) String name) {
         fileService.rename(id, name);
         return R.ok();
@@ -39,7 +39,7 @@ public class FileController {
 
     @PutMapping("/sharding")
     public R<ShardingDTO> sharding(@NotBlank String identifier,
-                                   @Pattern(regexp = "^\\d{1,19}$") String parentId,
+                                   @Pattern(regexp = "(^\\d{1,19}$)?") String parentId,
                                    @NotNull @Length(min = 1, max = 250) String filename,
                                    @Pattern(regexp = "^\\d{1,19}$") String size) {
         return R.ok(fileService.createOrGetSharding(identifier, parentId, Long.parseLong(size), filename));
@@ -65,7 +65,7 @@ public class FileController {
     }
 
     @GetMapping("/list")
-    public R<FileListDTO> list(@Pattern(regexp = "^\\d{1,19}$") String parentId) {
+    public R<FileListDTO> list(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
         return R.ok(fileService.list(parentId));
     }
 }

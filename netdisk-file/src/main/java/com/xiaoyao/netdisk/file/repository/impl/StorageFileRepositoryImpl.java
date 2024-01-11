@@ -21,8 +21,10 @@ public class StorageFileRepositoryImpl implements StorageFileRepository {
     }
 
     @Override
-    public boolean isIdentifierExist(String identifier) {
-        return storageFileMapper.selectCount(lambdaQuery(StorageFile.class)
-                .eq(StorageFile::getIdentifier, identifier)) > 0;
+    public StorageFile findIdAndSizeByIdentifier(String identifier) {
+        return storageFileMapper.selectOne(lambdaQuery(StorageFile.class)
+                .select(StorageFile::getId,
+                        StorageFile::getSize)
+                .eq(StorageFile::getIdentifier, identifier));
     }
 }

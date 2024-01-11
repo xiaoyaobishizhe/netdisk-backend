@@ -22,4 +22,9 @@ public class StorageFile {
      * 在存储库中的路径
      */
     private String path;
+
+    /**
+     * 文件大小
+     */
+    private Long size;
 }

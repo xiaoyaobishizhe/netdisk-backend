@@ -5,5 +5,5 @@ import com.xiaoyao.netdisk.file.repository.entity.StorageFile;
 public interface StorageFileRepository {
     void save(StorageFile storageFile);
 
-    boolean isIdentifierExist(String identifier);
+    StorageFile findIdAndSizeByIdentifier(String identifier);
 }

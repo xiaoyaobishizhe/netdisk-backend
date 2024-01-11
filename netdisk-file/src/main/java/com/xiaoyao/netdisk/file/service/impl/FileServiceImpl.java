@@ -113,8 +113,19 @@ public class FileServiceImpl implements FileService {
             // 文件太小，不需要分片
             throw new NetdiskException(E.FILE_SIZE_TOO_SMALL_TO_SHADING);
         }
-        if (storageFileRepository.isIdentifierExist(identifier)) {
+        StorageFile storageFile = storageFileRepository.findIdAndSizeByIdentifier(identifier);
+        if (storageFile != null) {
             // 文件已存在，直接秒传。
+            UserFile file = new UserFile();
+            file.setUserId(userId);
+            file.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
+            file.setName(filename);
+            file.setIsFolder(false);
+            file.setSize(storageFile.getSize());
+            file.setStorageFileId(storageFile.getId());
+            file.setCreateTime(LocalDateTime.now());
+            file.setUpdateTime(LocalDateTime.now());
+            userFileRepository.save(file);
             ShardingDTO dto = new ShardingDTO();
             dto.setCanSecUpload(true);
             return dto;
@@ -268,6 +279,7 @@ public class FileServiceImpl implements FileService {
         storageFile.setPath(StrUtil.format("file/{}{}", storageFilename,
                 FileNameUtil.extName(sharding.getFilename()).isEmpty() ?
                         "" : "." + FileNameUtil.extName(sharding.getFilename())));
+        storageFile.setSize(sharding.getSize());
         storageFileRepository.save(storageFile);
 
         // 保存文件信息到用户文件表
