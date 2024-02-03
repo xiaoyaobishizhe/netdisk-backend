@@ -23,7 +23,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getUserId, userId)
                 .isNull(parentId == null, UserFile::getParentId)
                 .eq(parentId != null, UserFile::getParentId, parentId)
-                .eq(UserFile::getName, name)) > 0;
+                .eq(UserFile::getName, name)
+                .eq(UserFile::getIsDeleted, false)) > 0;
     }
 
     @Override
@@ -31,7 +32,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getId, folderId)
-                .eq(UserFile::getIsFolder, true)) > 0;
+                .eq(UserFile::getIsFolder, true)
+                .eq(UserFile::getIsDeleted, false)) > 0;
     }
 
     @Override
@@ -41,7 +43,20 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getUserId, userId)
                 .isNull(folderId == null, UserFile::getParentId)
                 .eq(folderId != null, UserFile::getParentId, folderId)
-                .eq(UserFile::getName, name));
+                .eq(UserFile::getName, name)
+                .eq(UserFile::getIsDeleted, false));
+    }
+
+    @Override
+    public String findFolderPathById(long id, long userId) {
+        UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
+                .select(UserFile::getPath,
+                        UserFile::getName)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getId, id)
+                .eq(UserFile::getIsFolder, true)
+                .eq(UserFile::getIsDeleted, false));
+        return userFile.getPath() + userFile.getName() + "/";
     }
 
     @Override
@@ -55,7 +70,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .select(UserFile::getIsFolder,
                         UserFile::getParentId)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getId, i));
+                .eq(UserFile::getId, i)
+                .eq(UserFile::getIsDeleted, false));
     }
 
     @Override
@@ -73,6 +89,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         UserFile::getUpdateTime)
                 .eq(UserFile::getUserId, userId)
                 .isNull(parentId == null, UserFile::getParentId)
-                .eq(parentId != null, UserFile::getParentId, parentId));
+                .eq(parentId != null, UserFile::getParentId, parentId)
+                .eq(UserFile::getIsDeleted, false));
     }
 }

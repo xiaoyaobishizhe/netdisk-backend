@@ -34,6 +34,8 @@ public interface UserFileRepository {
      */
     UserFile findIdentifierById(Long folderId, String name, long userId);
 
+    String findFolderPathById(long id, long userId);
+
     void save(UserFile userFile);
 
     UserFile findIsFolderById(long id, long userId);

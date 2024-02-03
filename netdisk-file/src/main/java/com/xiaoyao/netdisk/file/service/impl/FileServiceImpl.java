@@ -65,6 +65,7 @@ public class FileServiceImpl implements FileService {
 
         UserFile folder = new UserFile();
         folder.setUserId(userId);
+        folder.setPath(pid == null ? "/" : userFileRepository.findFolderPathById(pid, userId));
         folder.setParentId(pid);
         folder.setName(folderName);
         folder.setIsFolder(true);
@@ -118,10 +119,12 @@ public class FileServiceImpl implements FileService {
             // 文件已存在，直接秒传。
             UserFile file = new UserFile();
             file.setUserId(userId);
+            file.setPath(folderId == null ? "/" : userFileRepository.findFolderPathById(folderId, userId));
             file.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
             file.setName(filename);
             file.setIsFolder(false);
             file.setSize(storageFile.getSize());
+            file.setIdentifier(identifier);
             file.setStorageFileId(storageFile.getId());
             file.setCreateTime(LocalDateTime.now());
             file.setUpdateTime(LocalDateTime.now());
@@ -284,11 +287,14 @@ public class FileServiceImpl implements FileService {
 
         // 保存文件信息到用户文件表
         UserFile file = new UserFile();
-        file.setUserId(TokenInterceptor.USER_ID.get());
+        long userId = TokenInterceptor.USER_ID.get();
+        file.setUserId(userId);
+        file.setPath(sharding.getParentId() == null ? "/" : userFileRepository.findFolderPathById(sharding.getParentId(), userId));
         file.setParentId(sharding.getParentId());
         file.setName(sharding.getFilename());
         file.setIsFolder(false);
         file.setSize(sharding.getSize());
+        file.setIdentifier(identifier);
         file.setStorageFileId(storageFile.getId());
         file.setCreateTime(LocalDateTime.now());
         file.setUpdateTime(LocalDateTime.now());

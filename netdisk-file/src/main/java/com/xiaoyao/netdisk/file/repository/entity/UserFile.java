@@ -21,6 +21,11 @@ public class UserFile {
     private Long userId;
 
     /**
+     * 所处路径
+     */
+    private String path;
+
+    /**
      * 父文件夹主键值
      */
     private Long parentId;
@@ -49,6 +54,11 @@ public class UserFile {
      * 存储文件主键值
      */
     private Long storageFileId;
+
+    /**
+     * 是否放到回收站
+     */
+    private Boolean isDeleted;
 
     /**
      * 创建时间
