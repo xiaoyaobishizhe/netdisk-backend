@@ -43,4 +43,8 @@ public interface UserFileRepository {
     void update(UserFile file);
 
     List<UserFile> findListByParentId(Long parentId, long userId);
+
+    void updatePathByParentId(String path, long parentId, long userId);
+
+    FileTreeNode findFileTreeById(long id, long userId, String oldName);
 }

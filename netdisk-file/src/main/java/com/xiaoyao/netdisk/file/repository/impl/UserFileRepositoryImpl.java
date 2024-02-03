@@ -1,13 +1,16 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
+import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
+import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaUpdate;
 
 @Repository
 public class UserFileRepositoryImpl implements UserFileRepository {
@@ -68,7 +71,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     public UserFile findIsFolderById(long i, long userId) {
         return userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getIsFolder,
-                        UserFile::getParentId)
+                        UserFile::getParentId,
+                        UserFile::getName)
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getId, i)
                 .eq(UserFile::getIsDeleted, false));
@@ -91,5 +95,58 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .isNull(parentId == null, UserFile::getParentId)
                 .eq(parentId != null, UserFile::getParentId, parentId)
                 .eq(UserFile::getIsDeleted, false));
+    }
+
+    @Override
+    public void updatePathByParentId(String path, long parentId, long userId) {
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getPath, path)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getParentId, parentId)
+                .eq(UserFile::getIsDeleted, false));
+    }
+
+    @Override
+    public FileTreeNode findFileTreeById(long id, long userId, String oldName) {
+        UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
+                .select(UserFile::getId,
+                        UserFile::getPath,
+                        UserFile::getName,
+                        UserFile::getIsFolder)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getId, id));
+        FileTreeNode node = convertToTreeNode(userFile);
+        List<UserFile> userFiles = userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .select(UserFile::getId,
+                        UserFile::getParentId,
+                        UserFile::getPath,
+                        UserFile::getName,
+                        UserFile::getIsFolder)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .likeRight(UserFile::getPath, userFile.getPath() + oldName + "/"));
+        findChildren(node, userFiles);
+        return node;
+    }
+
+    private FileTreeNode convertToTreeNode(UserFile userFile) {
+        FileTreeNode node = new FileTreeNode();
+        node.setId(userFile.getId());
+        node.setPath(userFile.getPath());
+        node.setName(userFile.getName());
+        node.setFolder(userFile.getIsFolder());
+        node.setChildren(new ArrayList<>());
+        return node;
+    }
+
+    private void findChildren(FileTreeNode node, List<UserFile> userFiles) {
+        userFiles.stream()
+                .filter(file -> file.getParentId() == node.getId())
+                .forEach(file -> {
+                    FileTreeNode child = convertToTreeNode(file);
+                    node.getChildren().add(child);
+                    findChildren(child, userFiles);
+                });
     }
 }

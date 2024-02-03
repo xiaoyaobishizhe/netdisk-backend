@@ -13,6 +13,7 @@ import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.properties.MinioProperties;
 import com.xiaoyao.netdisk.file.properties.ShardingProperties;
+import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.ShardingRepository;
 import com.xiaoyao.netdisk.file.repository.StorageFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
@@ -98,11 +99,33 @@ public class FileServiceImpl implements FileService {
             }
         }
 
+        boolean isFolder = userFile.getIsFolder();
+        String oldName = userFile.getName();
         userFile = new UserFile();
         userFile.setId(fid);
         userFile.setName(name);
         userFile.setUpdateTime(LocalDateTime.now());
         userFileRepository.update(userFile);
+
+        // 修改文件夹名称时，需要修改文件夹下的所有文件的路径。
+        if (isFolder) {
+            FileTreeNode node = userFileRepository.findFileTreeById(fid, userId, oldName);
+            refreshChildPath(node, node.getPath() + node.getName() + "/");
+        }
+    }
+
+    private void refreshChildPath(FileTreeNode node, String path) {
+        List<FileTreeNode> children = node.getChildren();
+        long userId = TokenInterceptor.USER_ID.get();
+        if (!children.isEmpty()) {
+            children.forEach(child -> child.setPath(path));
+            userFileRepository.updatePathByParentId(path, node.getId(), userId);
+            children.forEach(child -> {
+                if (child.isFolder()) {
+                    refreshChildPath(child, path + child.getName() + "/");
+                }
+            });
+        }
     }
 
     @Override
