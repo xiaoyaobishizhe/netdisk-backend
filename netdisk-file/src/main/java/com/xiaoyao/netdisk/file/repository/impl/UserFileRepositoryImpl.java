@@ -24,41 +24,46 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     public boolean isNameExist(Long parentId, String name, long userId) {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
-                .isNull(parentId == null, UserFile::getParentId)
-                .eq(parentId != null, UserFile::getParentId, parentId)
-                .eq(UserFile::getName, name)
-                .eq(UserFile::getIsDeleted, false)) > 0;
+                .eq(UserFile::getIsDeleted, false)
+                .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId)
+                .eq(UserFile::getName, name)) > 0;
     }
 
     @Override
     public boolean isFolderExist(long folderId, long userId) {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
                 .eq(UserFile::getId, folderId)
-                .eq(UserFile::getIsFolder, true)
-                .eq(UserFile::getIsDeleted, false)) > 0;
+                .eq(UserFile::getIsFolder, true)) > 0;
     }
 
     @Override
-    public UserFile findIdentifierById(Long folderId, String name, long userId) {
-        return userFileMapper.selectOne(lambdaQuery(UserFile.class)
+    public String getIdentifier(Long folderId, String name, long userId) {
+        UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getIdentifier)
                 .eq(UserFile::getUserId, userId)
-                .isNull(folderId == null, UserFile::getParentId)
-                .eq(folderId != null, UserFile::getParentId, folderId)
-                .eq(UserFile::getName, name)
-                .eq(UserFile::getIsDeleted, false));
+                .eq(UserFile::getIsDeleted, false)
+                .eq(folderId != null, UserFile::getParentId, folderId).isNull(folderId == null, UserFile::getParentId)
+                .eq(UserFile::getName, name));
+        if (userFile == null) {
+            return null;
+        }
+        return userFile.getIdentifier() == null ? "" : userFile.getIdentifier();
     }
 
     @Override
-    public String findFolderPathById(long id, long userId) {
+    public String getPathByFolderId(long folderId, long userId) {
         UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getPath,
                         UserFile::getName)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getId, id)
-                .eq(UserFile::getIsFolder, true)
-                .eq(UserFile::getIsDeleted, false));
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getId, folderId)
+                .eq(UserFile::getIsFolder, true));
+        if (userFile == null) {
+            return null;
+        }
         return userFile.getPath() + userFile.getName() + "/";
     }
 
@@ -68,14 +73,14 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public UserFile findIsFolderById(long i, long userId) {
+    public UserFile findIsFolderAndParentIdAndNameById(long id, long userId) {
         return userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getIsFolder,
                         UserFile::getParentId,
                         UserFile::getName)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getId, i)
-                .eq(UserFile::getIsDeleted, false));
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getId, id));
     }
 
     @Override
@@ -92,9 +97,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         UserFile::getSize,
                         UserFile::getUpdateTime)
                 .eq(UserFile::getUserId, userId)
-                .isNull(parentId == null, UserFile::getParentId)
-                .eq(parentId != null, UserFile::getParentId, parentId)
-                .eq(UserFile::getIsDeleted, false));
+                .eq(UserFile::getIsDeleted, false)
+                .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId));
     }
 
     @Override
@@ -102,8 +106,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         userFileMapper.update(null, lambdaUpdate(UserFile.class)
                 .set(UserFile::getPath, path)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getParentId, parentId)
-                .eq(UserFile::getIsDeleted, false));
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getParentId, parentId));
     }
 
     @Override
@@ -116,7 +120,13 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, false)
                 .eq(UserFile::getId, id));
+        if (userFile == null) {
+            return null;
+        }
         FileTreeNode node = convertToTreeNode(userFile);
+        if (!userFile.getIsFolder()) {
+            return node;
+        }
         List<UserFile> userFiles = userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
                         UserFile::getParentId,

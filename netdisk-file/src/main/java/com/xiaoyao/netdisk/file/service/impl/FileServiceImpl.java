@@ -66,7 +66,7 @@ public class FileServiceImpl implements FileService {
 
         UserFile folder = new UserFile();
         folder.setUserId(userId);
-        folder.setPath(pid == null ? "/" : userFileRepository.findFolderPathById(pid, userId));
+        folder.setPath(pid == null ? "/" : userFileRepository.getPathByFolderId(pid, userId));
         folder.setParentId(pid);
         folder.setName(folderName);
         folder.setIsFolder(true);
@@ -86,7 +86,7 @@ public class FileServiceImpl implements FileService {
         checkName(name);
         long fid = Long.parseLong(fileId);
         long userId = TokenInterceptor.USER_ID.get();
-        UserFile userFile = userFileRepository.findIsFolderById(fid, userId);
+        UserFile userFile = userFileRepository.findIsFolderAndParentIdAndNameById(fid, userId);
         if (userFile == null) {
             // 文件不存在
             throw new NetdiskException(E.FILE_NOT_EXIST);
@@ -142,7 +142,7 @@ public class FileServiceImpl implements FileService {
             // 文件已存在，直接秒传。
             UserFile file = new UserFile();
             file.setUserId(userId);
-            file.setPath(folderId == null ? "/" : userFileRepository.findFolderPathById(folderId, userId));
+            file.setPath(folderId == null ? "/" : userFileRepository.getPathByFolderId(folderId, userId));
             file.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
             file.setName(filename);
             file.setIsFolder(false);
@@ -160,12 +160,12 @@ public class FileServiceImpl implements FileService {
             // 父文件夹不存在
             throw new NetdiskException(E.PARENT_FOLDER_NOT_EXIST);
         }
-        UserFile existedFile = userFileRepository.findIdentifierById(folderId, filename, userId);
-        if (existedFile != null) {
-            if (existedFile.getIdentifier() == null) {
+        String idtf = userFileRepository.getIdentifier(folderId, filename, userId);
+        if (idtf != null) {
+            if (idtf.isEmpty()) {
                 // 存在同名的文件夹，更改文件名。
                 filename = newFileName(folderId, filename, userId);
-            } else if (existedFile.getIdentifier().equals(identifier)) {
+            } else if (idtf.equals(identifier)) {
                 // 存在同名文件，但是是同一个文件，直接返回。
                 ShardingDTO dto = new ShardingDTO();
                 dto.setExistSameFile(true);
@@ -312,7 +312,7 @@ public class FileServiceImpl implements FileService {
         UserFile file = new UserFile();
         long userId = TokenInterceptor.USER_ID.get();
         file.setUserId(userId);
-        file.setPath(sharding.getParentId() == null ? "/" : userFileRepository.findFolderPathById(sharding.getParentId(), userId));
+        file.setPath(sharding.getParentId() == null ? "/" : userFileRepository.getPathByFolderId(sharding.getParentId(), userId));
         file.setParentId(sharding.getParentId());
         file.setName(sharding.getFilename());
         file.setIsFolder(false);

@@ -25,20 +25,27 @@ public interface UserFileRepository {
     boolean isFolderExist(long folderId, long userId);
 
     /**
-     * 在指定的文件夹下，查找指定名称的文件或文件夹，并且如果是文件的话则获取文件的唯一标识。
+     * 在指定的文件夹下查找指定名称的文件的唯一标识，如果指定名称的文件是文件夹则返回空字符串。
      *
      * @param folderId 文件夹id，如果为null则表示在根目录下查找。
      * @param name     文件或文件夹的名称
      * @param userId   用户id
-     * @return 如果指定名称的文件或文件夹不存在则返回null。
+     * @return 如果指定名称的文件不存在则返回null。
      */
-    UserFile findIdentifierById(Long folderId, String name, long userId);
+    String getIdentifier(Long folderId, String name, long userId);
 
-    String findFolderPathById(long id, long userId);
+    /**
+     * 获取指定id的文件夹的路径（包含目标文件夹名称）。
+     *
+     * @param folderId 文件夹id
+     * @param userId   用户id
+     * @return 如果指定id的文件夹不存在则返回null。
+     */
+    String getPathByFolderId(long folderId, long userId);
 
     void save(UserFile userFile);
 
-    UserFile findIsFolderById(long id, long userId);
+    UserFile findIsFolderAndParentIdAndNameById(long id, long userId);
 
     void update(UserFile file);
 
