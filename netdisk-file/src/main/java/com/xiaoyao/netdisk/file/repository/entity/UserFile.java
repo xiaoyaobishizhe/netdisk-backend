@@ -61,6 +61,11 @@ public class UserFile {
     private Boolean isDeleted;
 
     /**
+     * 删除时间
+     */
+    private LocalDateTime deleteTime;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

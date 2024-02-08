@@ -109,7 +109,7 @@ public class FileServiceImpl implements FileService {
 
         // 修改文件夹名称时，需要修改文件夹下的所有文件的路径。
         if (isFolder) {
-            FileTreeNode node = userFileRepository.findFileTreeById(fid, userId, oldName);
+            FileTreeNode node = userFileRepository.findFileTree(fid, oldName, userId);
             refreshChildPath(node, node.getPath() + node.getName() + "/");
         }
     }

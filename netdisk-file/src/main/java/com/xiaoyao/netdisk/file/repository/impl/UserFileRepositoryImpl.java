@@ -1,11 +1,12 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
 import com.xiaoyao.netdisk.file.repository.FileTreeNode;
-import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
+import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,16 +112,82 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public FileTreeNode findFileTreeById(long id, long userId, String oldName) {
+    public List<UserFile> listDeleted(long userId) {
+        return userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .select(UserFile::getId,
+                        UserFile::getName,
+                        UserFile::getIsFolder,
+                        UserFile::getDeleteTime)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, true)
+                .isNull(UserFile::getParentId));
+    }
+
+    @Override
+    public void updateParentId(long fid, Long parentId, boolean isDeleted, long userId) {
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(isDeleted, UserFile::getParentId, parentId)
+                .set(!isDeleted, UserFile::getParentId, null)
+                .set(!isDeleted, UserFile::getDeleteTime, LocalDateTime.now())
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, isDeleted)
+                .eq(UserFile::getId, fid));
+    }
+
+    @Override
+    public void updateIsDeleted(List<Long> ids, boolean isDeleted, long userId) {
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getIsDeleted, isDeleted)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, !isDeleted)
+                .in(UserFile::getId, ids));
+    }
+
+    @Override
+    public void delete(List<Long> ids, long userId) {
+        userFileMapper.delete(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, true)
+                .in(UserFile::getId, ids));
+    }
+
+    @Override
+    public FileTreeNode findFileTree(long id, String oldName, long userId) {
+        return findFileTree(id, false, oldName, userId);
+    }
+
+    @Override
+    public FileTreeNode findFileTree(long id, long userId) {
+        return findFileTree(id, false, null, userId);
+    }
+
+    @Override
+    public FileTreeNode findDeletedFileTree(long id, long userId) {
+        return findFileTree(id, true, null, userId);
+    }
+
+    @Override
+    public Long getFolderId(String path, String name, long userId) {
+        UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
+                .select(UserFile::getId)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getPath, path)
+                .eq(UserFile::getName, name));
+        return userFile == null ? null : userFile.getId();
+    }
+
+    private FileTreeNode findFileTree(long id, boolean isDeleted, String oldName, long userId) {
         UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
                         UserFile::getPath,
                         UserFile::getName,
                         UserFile::getIsFolder)
+                .select(isDeleted, UserFile::getParentId)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getIsDeleted, isDeleted)
                 .eq(UserFile::getId, id));
-        if (userFile == null) {
+        if (userFile == null || (isDeleted && userFile.getParentId() != null)) {
             return null;
         }
         FileTreeNode node = convertToTreeNode(userFile);
@@ -134,8 +201,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         UserFile::getName,
                         UserFile::getIsFolder)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
-                .likeRight(UserFile::getPath, userFile.getPath() + oldName + "/"));
+                .eq(UserFile::getIsDeleted, isDeleted)
+                .likeRight(UserFile::getPath, userFile.getPath() + (oldName == null ? userFile.getName() : oldName) + "/"));
         findChildren(node, userFiles);
         return node;
     }

@@ -53,5 +53,19 @@ public interface UserFileRepository {
 
     void updatePathByParentId(String path, long parentId, long userId);
 
-    FileTreeNode findFileTreeById(long id, long userId, String oldName);
+    List<UserFile> listDeleted(long userId);
+
+    void updateParentId(long fid, Long parentId, boolean isDeleted, long userId);
+
+    void updateIsDeleted(List<Long> ids, boolean isDeleted, long userId);
+
+    void delete(List<Long> ids, long userId);
+
+    FileTreeNode findFileTree(long id, String oldName, long userId);
+
+    FileTreeNode findFileTree(long id, long userId);
+
+    FileTreeNode findDeletedFileTree(long id, long userId);
+
+    Long getFolderId(String path, String name, long userId);
 }
