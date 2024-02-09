@@ -49,6 +49,13 @@ public interface UserFileRepository {
 
     void update(UserFile file);
 
+    /**
+     * 获取指定文件夹下的文件列表，如果是根路径则parentId为null。
+     *
+     * @param parentId 文件夹id
+     * @param userId   用户id
+     * @return 如果文件夹不存在则返回空列表
+     */
     List<UserFile> findListByParentId(Long parentId, long userId);
 
     void updatePathByParentId(String path, long parentId, long userId);
@@ -61,11 +68,41 @@ public interface UserFileRepository {
 
     void delete(List<Long> ids, long userId);
 
+    /**
+     * 查找文件树，并且使用指定的文件名来匹配所有的子文件。
+     *
+     * @param id      文件id
+     * @param oldName 原先的文件名
+     * @param userId  用户id
+     * @return 如果文件不存在则返回null
+     */
     FileTreeNode findFileTree(long id, String oldName, long userId);
 
+    /**
+     * 查找文件树。
+     *
+     * @param id     文件id
+     * @param userId 用户id
+     * @return 如果文件不存在则返回null
+     */
     FileTreeNode findFileTree(long id, long userId);
 
+    /**
+     * 查找回收站中的文件树。
+     *
+     * @param id     文件id
+     * @param userId 用户id
+     * @return 如果文件不存在则返回null
+     */
     FileTreeNode findDeletedFileTree(long id, long userId);
 
+    /**
+     * 获取指定路径下的文件夹的id。
+     *
+     * @param path   文件夹的路径
+     * @param name   文件夹的名称
+     * @param userId 用户id
+     * @return 如果文件夹不存在则返回null
+     */
     Long getFolderId(String path, String name, long userId);
 }

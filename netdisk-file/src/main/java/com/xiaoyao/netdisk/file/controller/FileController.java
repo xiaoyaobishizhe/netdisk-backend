@@ -4,7 +4,8 @@ import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
-import com.xiaoyao.netdisk.file.service.FileService;
+import com.xiaoyao.netdisk.file.service.FileUploadService;
+import com.xiaoyao.netdisk.file.service.UserFileService;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,23 +18,25 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/file")
 public class FileController {
-    private final FileService fileService;
+    private final UserFileService userFileService;
+    private final FileUploadService fileUploadService;
 
-    public FileController(FileService fileService) {
-        this.fileService = fileService;
+    public FileController(UserFileService userFileService, FileUploadService fileUploadService) {
+        this.userFileService = userFileService;
+        this.fileUploadService = fileUploadService;
     }
 
     @PutMapping("/folder")
     public R<Void> createFolder(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId,
                                 @NotNull @Length(min = 1, max = 250) String folderName) {
-        fileService.createFolder(parentId, folderName);
+        userFileService.createFolder(parentId, folderName);
         return R.ok();
     }
 
     @PutMapping("/name")
     public R<Void> rename(@Pattern(regexp = "(^\\d{1,19}$)?") String id,
                           @NotNull @Length(min = 1, max = 250) String name) {
-        fileService.rename(id, name);
+        userFileService.rename(id, name);
         return R.ok();
     }
 
@@ -42,30 +45,30 @@ public class FileController {
                                    @Pattern(regexp = "(^\\d{1,19}$)?") String parentId,
                                    @NotNull @Length(min = 1, max = 250) String filename,
                                    @Pattern(regexp = "^\\d{1,19}$") String size) {
-        return R.ok(fileService.createOrGetSharding(identifier, parentId, Long.parseLong(size), filename));
+        return R.ok(fileUploadService.createOrGetSharding(identifier, parentId, Long.parseLong(size), filename));
     }
 
     @PostMapping("/apply-upload-chunk")
     public R<ApplyUploadChunkDTO> applyUploadChunk(@NotBlank String identifier,
                                                    @NotNull @Min(1) String chunkNumber) {
-        return R.ok(fileService.applyUploadChunk(identifier, Integer.parseInt(chunkNumber)));
+        return R.ok(fileUploadService.applyUploadChunk(identifier, Integer.parseInt(chunkNumber)));
     }
 
     @PostMapping("/upload-chunk")
     public R<Void> uploadChunk(@NotBlank String identifier,
                                @NotNull @Min(1) String chunkNumber) {
-        fileService.uploadChunk(identifier, Integer.parseInt(chunkNumber));
+        fileUploadService.uploadChunk(identifier, Integer.parseInt(chunkNumber));
         return R.ok();
     }
 
     @PostMapping("/finish-upload-chunk")
     public R<Void> finishUploadChunk(@NotBlank String identifier) {
-        fileService.finishUploadChunk(identifier);
+        fileUploadService.finishUploadChunk(identifier);
         return R.ok();
     }
 
     @GetMapping("/list")
     public R<FileListDTO> list(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
-        return R.ok(fileService.list(parentId));
+        return R.ok(userFileService.list(parentId));
     }
 }

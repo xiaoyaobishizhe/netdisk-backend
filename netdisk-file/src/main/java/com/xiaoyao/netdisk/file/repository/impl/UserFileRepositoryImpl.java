@@ -173,6 +173,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, false)
                 .eq(UserFile::getPath, path)
+                .eq(UserFile::getIsFolder, true)
                 .eq(UserFile::getName, name));
         return userFile == null ? null : userFile.getId();
     }
