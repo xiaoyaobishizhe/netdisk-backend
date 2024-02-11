@@ -68,6 +68,8 @@ public interface UserFileRepository {
 
     void delete(List<Long> ids, long userId);
 
+    void deleteAllDeleted(long userId);
+
     /**
      * 查找文件树，并且使用指定的文件名来匹配所有的子文件。
      *

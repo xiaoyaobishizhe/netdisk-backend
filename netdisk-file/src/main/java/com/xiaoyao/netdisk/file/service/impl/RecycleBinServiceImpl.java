@@ -96,6 +96,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
         userFileRepository.updateIsDeleted(ids, false, userId);
     }
 
+    @Override
+    public void clear() {
+        userFileRepository.deleteAllDeleted(TokenInterceptor.USER_ID.get());
+    }
+
     private Long getFolderId(String path, long userId) {
         if (path.equals("/")) {
             return null;

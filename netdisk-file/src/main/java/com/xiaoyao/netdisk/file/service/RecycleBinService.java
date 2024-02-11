@@ -28,4 +28,9 @@ public interface RecycleBinService {
      * @param id 文件或文件夹的id
      */
     void restore(String id);
+
+    /**
+     * 清空回收站。
+     */
+    void clear();
 }

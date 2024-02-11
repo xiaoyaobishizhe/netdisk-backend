@@ -152,6 +152,13 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
+    public void deleteAllDeleted(long userId) {
+        userFileMapper.delete(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, true));
+    }
+
+    @Override
     public FileTreeNode findFileTree(long id, String oldName, long userId) {
         return findFileTree(id, false, oldName, userId);
     }
