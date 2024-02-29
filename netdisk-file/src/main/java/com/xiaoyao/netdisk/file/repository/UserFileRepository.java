@@ -16,6 +16,16 @@ public interface UserFileRepository {
     boolean isNameExist(Long parentId, String name, long userId);
 
     /**
+     * 判断在指定文件夹下是否有某个名称存在。
+     *
+     * @param parentId 文件夹的id，如果为null，则表示在根目录下查找。
+     * @param name     文件夹或文件的名称列表
+     * @param userId   用户id
+     * @return 如果存在，则返回true，否则返回false。
+     */
+    boolean isNameExist(Long parentId, List<String> name, long userId);
+
+    /**
      * 判断指定的文件夹是否存在。
      *
      * @param folderId 文件夹的id
@@ -52,11 +62,12 @@ public interface UserFileRepository {
     /**
      * 获取指定文件夹下的文件列表，如果是根路径则parentId为null。
      *
-     * @param parentId 文件夹id
-     * @param userId   用户id
+     * @param parentId   文件夹id
+     * @param onlyFolder 是否只列出文件夹
+     * @param userId     用户id
      * @return 如果文件夹不存在则返回空列表
      */
-    List<UserFile> findListByParentId(Long parentId, long userId);
+    List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, long userId);
 
     void updatePathByParentId(String path, long parentId, long userId);
 
@@ -107,4 +118,19 @@ public interface UserFileRepository {
      * @return 如果文件夹不存在则返回null
      */
     Long getFolderId(String path, String name, long userId);
+
+    /**
+     * 判断指定的文件是否全都存在。
+     *
+     * @param fileList 文件id列表
+     * @param userId   用户id
+     * @return 如果文件都存在则返回true，否则返回false。
+     */
+    boolean isAllExist(List<Long> fileList, long userId);
+
+    List<UserFile> findListByIds(List<Long> ids, long userId);
+
+    List<UserFile> findListByPaths(List<String> paths, long userId);
+
+    void banchSave(List<UserFile> userFiles);
 }

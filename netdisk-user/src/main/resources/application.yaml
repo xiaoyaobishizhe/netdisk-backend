@@ -6,15 +6,15 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.121.128:8848
+        server-addr: 192.168.121.130:8848
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.121.128:3306/netdisk_user?connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true
+    url: jdbc:mysql://192.168.121.130:3306/netdisk_user?connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true
     username: root
     password: root
   data:
     redis:
-      host: 192.168.121.128
+      host: 192.168.121.130
       port: 6379
 mybatis-plus:
   global-config:

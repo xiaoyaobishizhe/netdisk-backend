@@ -2,5 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper">
-
+    <insert id="insertMany">
+        INSERT INTO tb_user_file (id,user_id,path,parent_id,name,
+        is_folder,size,identifier,storage_file_id,is_deleted,
+        delete_time,create_time,update_time) VALUES
+        <foreach separator="," collection="list" item="file">
+            (#{file.id},#{file.userId},#{file.path},#{file.parentId},#{file.name},
+            #{file.isFolder},#{file.size},#{file.identifier},#{file.storageFileId},#{file.isDeleted},
+            #{file.deleteTime},#{file.createTime},#{file.updateTime})
+        </foreach>
+    </insert>
 </mapper>

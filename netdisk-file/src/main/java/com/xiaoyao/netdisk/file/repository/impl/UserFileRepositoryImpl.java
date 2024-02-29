@@ -31,6 +31,15 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
+    public boolean isNameExist(Long parentId, List<String> name, long userId) {
+        return userFileMapper.selectCount(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId)
+                .in(UserFile::getName, name)) > 0;
+    }
+
+    @Override
     public boolean isFolderExist(long folderId, long userId) {
         return userFileMapper.selectCount(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
@@ -90,7 +99,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public List<UserFile> findListByParentId(Long parentId, long userId) {
+    public List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, long userId) {
         return userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
                         UserFile::getName,
@@ -99,7 +108,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         UserFile::getUpdateTime)
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, false)
-                .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId));
+                .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId)
+                .eq(onlyFolder, UserFile::getIsFolder, true));
     }
 
     @Override
@@ -183,6 +193,35 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getIsFolder, true)
                 .eq(UserFile::getName, name));
         return userFile == null ? null : userFile.getId();
+    }
+
+    @Override
+    public boolean isAllExist(List<Long> fileList, long userId) {
+        return userFileMapper.selectCount(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .in(UserFile::getId, fileList)) == fileList.size();
+    }
+
+    @Override
+    public List<UserFile> findListByIds(List<Long> ids, long userId) {
+        return userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .in(UserFile::getId, ids));
+    }
+
+    @Override
+    public List<UserFile> findListByPaths(List<String> paths, long userId) {
+        return userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .in(UserFile::getPath, paths));
+    }
+
+    @Override
+    public void banchSave(List<UserFile> userFiles) {
+        userFileMapper.insertMany(userFiles);
     }
 
     private FileTreeNode findFileTree(long id, boolean isDeleted, String oldName, long userId) {

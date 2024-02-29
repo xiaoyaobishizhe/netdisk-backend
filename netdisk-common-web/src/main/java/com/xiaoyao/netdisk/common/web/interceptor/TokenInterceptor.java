@@ -38,7 +38,9 @@ public class TokenInterceptor implements HandlerInterceptor {
             if (refreshToken == null || !refreshToken.equals(token)) {
                 throw new NetdiskException(E.TOKEN_EXPIRED);
             }
-            response.setHeader("token", jwtUtil.createJwt(userId));
+            token = jwtUtil.createJwt(userId);
+            redisTemplate.opsForValue().set("refresh-token:" + userId, token);
+            response.setHeader("token", token);
         }
 
         USER_ID.set(userId);

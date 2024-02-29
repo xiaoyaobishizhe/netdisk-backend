@@ -22,6 +22,9 @@ public enum E {
     SHADING_TASK_NOT_COMPLETE(1015, "分片任务未完成"),
     PARENT_FOLDER_NOT_EXIST(1016, "父文件夹不存在"),
     FILE_SIZE_TOO_SMALL_TO_SHADING(1017, "文件大小太小，无法进行分片上传"),
+    SHARE_NOT_EXIST(1018, "分享不存在"),
+    SHARE_TIMEOUT(1019, "分享已过期"),
+    SHARE_PASSWORD_ERROR(1020, "分享提取码错误"),
     ;
 
     private final int code;

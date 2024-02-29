@@ -3,16 +3,16 @@ package com.xiaoyao.netdisk.file.controller;
 import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
+import com.xiaoyao.netdisk.file.dto.FolderListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.service.FileUploadService;
 import com.xiaoyao.netdisk.file.service.UserFileService;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 @Validated
 @RestController
@@ -70,5 +70,17 @@ public class FileController {
     @GetMapping("/list")
     public R<FileListDTO> list(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
         return R.ok(userFileService.list(parentId));
+    }
+
+    @GetMapping("/list-folder")
+    public R<FolderListDTO> listFolder(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+        return R.ok(userFileService.listFolders(parentId));
+    }
+
+    @PostMapping("/copy")
+    public R<FolderListDTO> copy(@Size String[] ids,
+                                 @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+        userFileService.copy(Arrays.stream(ids).toList(), parentId);
+        return R.ok();
     }
 }
