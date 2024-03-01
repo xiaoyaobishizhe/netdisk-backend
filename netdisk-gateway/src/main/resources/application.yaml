@@ -23,3 +23,7 @@ spring:
           predicates:
             - Path=/file/**
           uri: lb://netdisk-file
+        - id: share
+          predicates:
+            - Path=/share/**
+          uri: lb://netdisk-file

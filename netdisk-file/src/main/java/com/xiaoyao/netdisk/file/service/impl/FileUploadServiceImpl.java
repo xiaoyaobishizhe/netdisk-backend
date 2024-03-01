@@ -62,7 +62,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             // 文件已存在，直接秒传。
             UserFile file = new UserFile();
             file.setUserId(userId);
-            file.setPath(folderId == null ? "/" : userFileRepository.getPathByFolderId(folderId, userId));
+            file.setPath(folderId == null ? "/" : userFileRepository.getFolderFullPath(folderId, userId));
             file.setParentId(StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId));
             file.setName(filename);
             file.setIsFolder(false);
@@ -80,7 +80,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             // 父文件夹不存在
             throw new NetdiskException(E.PARENT_FOLDER_NOT_EXIST);
         }
-        String idtf = userFileRepository.getIdentifier(folderId, filename, userId);
+        String idtf = userFileRepository.getFileIdentifierInParent(folderId, filename, userId);
         if (idtf != null) {
             if (idtf.isEmpty()) {
                 // 存在同名的文件夹，更改文件名。
@@ -135,7 +135,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         do {
             filename = StrUtil.format("{}({})", filename, i);
             i++;
-        } while (userFileRepository.isNameExist(parentId, filename, userId));
+        } while (userFileRepository.isNameExistInParent(parentId, filename, userId));
         return filename;
     }
 
@@ -245,7 +245,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         UserFile file = new UserFile();
         long userId = TokenInterceptor.USER_ID.get();
         file.setUserId(userId);
-        file.setPath(sharding.getParentId() == null ? "/" : userFileRepository.getPathByFolderId(sharding.getParentId(), userId));
+        file.setPath(sharding.getParentId() == null ? "/" : userFileRepository.getFolderFullPath(sharding.getParentId(), userId));
         file.setParentId(sharding.getParentId());
         file.setName(sharding.getFilename());
         file.setIsFolder(false);

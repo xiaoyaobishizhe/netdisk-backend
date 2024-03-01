@@ -17,6 +17,11 @@ public class UserFileTreeNode {
         this.value = value;
     }
 
+    /**
+     * 递归刷新所有节点的路径。
+     *
+     * @param path 新的路径
+     */
     public void refreshPathDeeply(String path) {
         doRefreshPathDeeply(this, path);
     }
@@ -26,8 +31,14 @@ public class UserFileTreeNode {
         node.children.forEach(child -> doRefreshPathDeeply(child, node.value.getPath() + node.value.getName() + "/"));
     }
 
-    public void refreshIdAndPathDeeply(long id, String path, boolean refreshTime) {
-        doRefreshIdAndPathDeeply(this, id, path, refreshTime);
+    /**
+     * 递归刷新所有节点的id和路径，新的id是使用雪花算法来随机生成的。
+     *
+     * @param path        新的路径
+     * @param refreshTime 是否同时刷新节点的创建时间和更新时间
+     */
+    public void refreshIdAndPathDeeply(String path, boolean refreshTime) {
+        doRefreshIdAndPathDeeply(this, IdUtil.getSnowflakeNextId(), path, refreshTime);
     }
 
     private void doRefreshIdAndPathDeeply(UserFileTreeNode node, long id, String path, boolean refreshTime) {
@@ -43,17 +54,32 @@ public class UserFileTreeNode {
         });
     }
 
+    /**
+     * 刷新当前节点的名称以及所有子节点的路径。
+     *
+     * @param name 节点名称
+     */
     public void refreshNameDeeply(String name) {
         value.setName(name);
         children.forEach(child -> child.refreshPathDeeply(value.getPath() + value.getName() + "/"));
     }
 
+    /**
+     * 收集当前节点树中的所有文件夹。
+     *
+     * @return 用户文件列表
+     */
     public List<UserFile> collectFolder() {
         List<UserFile> folders = new ArrayList<>();
         doCollectFolder(this, folders, true);
         return folders;
     }
 
+    /**
+     * 收集当前节点树中的所有文件。
+     *
+     * @return 用户文件列表
+     */
     public List<UserFile> collectAll() {
         List<UserFile> files = new ArrayList<>();
         doCollectFolder(this, files, false);

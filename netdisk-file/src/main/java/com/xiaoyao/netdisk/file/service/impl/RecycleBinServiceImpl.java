@@ -23,7 +23,7 @@ public class RecycleBinServiceImpl implements RecycleBinService {
 
     @Override
     public ListRecycleBinDTO list() {
-        List<UserFile> userFiles = userFileRepository.listDeleted(TokenInterceptor.USER_ID.get());
+        List<UserFile> userFiles = userFileRepository.listDeletedRootFile(TokenInterceptor.USER_ID.get());
 
         ListRecycleBinDTO dto = new ListRecycleBinDTO();
         List<ListRecycleBinDTO.Item> items = new ArrayList<>();
@@ -42,7 +42,7 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     @Override
     public void delete(List<String> ids) {
         userFileRepository.moveToRecycleBin(
-                userFileRepository.findUserFileTreesByIds(
+                userFileRepository.findUserFileTrees(
                         ids.stream().map(Long::parseLong).toList(),
                         false,
                         TokenInterceptor.USER_ID.get()));
@@ -51,7 +51,7 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     @Override
     public void remove(List<String> ids) {
         long userId = TokenInterceptor.USER_ID.get();
-        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTrees(
                 ids.stream().map(Long::parseLong).toList(), true, userId);
         userFileRepository.delete(trees.stream()
                 .flatMap(tree -> tree.collectAll().stream())
@@ -63,14 +63,14 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     public void restore(List<String> ids) {
         long userId = TokenInterceptor.USER_ID.get();
 
-        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTrees(
                 ids.stream().map(Long::parseLong).toList(), true, userId);
 
         // 确保父文件夹存在，如果不存在则自动创建，同时还需要确保名称在路径下不存在。
         List<UserFileTreeNode> needMove = new ArrayList<>();
         trees.forEach(tree -> {
             tree.getValue().setParentId(getFolderId(tree.getValue().getPath(), userId));
-            if (!userFileRepository.isNameExist(tree.getValue().getParentId(), tree.getValue().getName(), userId)) {
+            if (!userFileRepository.isNameExistInParent(tree.getValue().getParentId(), tree.getValue().getName(), userId)) {
                 needMove.add(tree);
             }
         });
@@ -91,7 +91,7 @@ public class RecycleBinServiceImpl implements RecycleBinService {
         path = path.substring(0, path.length() - 1);
         String pPath = path.substring(0, path.lastIndexOf('/') + 1);
         String name = path.substring(path.lastIndexOf('/') + 1);
-        Long folderId = userFileRepository.getFolderId(pPath, name, userId);
+        Long folderId = userFileRepository.getFolderIdInPathByName(pPath, name, userId);
         if (folderId != null) {
             return folderId;
         }
