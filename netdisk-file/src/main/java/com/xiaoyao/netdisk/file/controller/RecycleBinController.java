@@ -38,4 +38,10 @@ public class RecycleBinController {
         recycleBinService.remove(Arrays.stream(ids).toList());
         return R.ok();
     }
+
+    @PostMapping("/clear")
+    public R<Void> clear() {
+        recycleBinService.clear();
+        return R.ok();
+    }
 }
