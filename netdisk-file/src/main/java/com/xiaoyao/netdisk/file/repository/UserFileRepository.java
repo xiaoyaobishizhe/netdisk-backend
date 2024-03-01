@@ -55,10 +55,6 @@ public interface UserFileRepository {
 
     void save(UserFile userFile);
 
-    UserFile findIsFolderAndParentIdAndNameById(long id, long userId);
-
-    void update(UserFile file);
-
     /**
      * 获取指定文件夹下的文件列表，如果是根路径则parentId为null。
      *
@@ -76,16 +72,6 @@ public interface UserFileRepository {
     void delete(List<Long> ids);
 
     void deleteAllDeleted(long userId);
-
-    /**
-     * 查找文件树，并且使用指定的文件名来匹配所有的子文件。
-     *
-     * @param id      文件id
-     * @param oldName 原先的文件名
-     * @param userId  用户id
-     * @return 如果文件不存在则返回null
-     */
-    FileTreeNode findFileTree(long id, String oldName, long userId);
 
     /**
      * 获取指定路径下的文件夹的id。
@@ -108,6 +94,8 @@ public interface UserFileRepository {
 
     void save(List<UserFile> userFiles);
 
+    UserFileTreeNode findUserFileTreesByIds(long id, boolean isDeleted, long userId);
+
     List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, boolean isDeleted, long userId);
 
     void updateParentIdAndPath(List<UserFileTreeNode> trees, Long parentId);
@@ -115,4 +103,6 @@ public interface UserFileRepository {
     void moveToRecycleBin(List<UserFileTreeNode> trees);
 
     void moveToUserSpace(List<UserFileTreeNode> trees);
+
+    void updateNameAndPath(UserFileTreeNode node);
 }

@@ -1,7 +1,5 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
@@ -85,22 +83,6 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public UserFile findIsFolderAndParentIdAndNameById(long id, long userId) {
-        return userFileMapper.selectOne(lambdaQuery(UserFile.class)
-                .select(UserFile::getIsFolder,
-                        UserFile::getParentId,
-                        UserFile::getName)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
-                .eq(UserFile::getId, id));
-    }
-
-    @Override
-    public void update(UserFile file) {
-        userFileMapper.updateById(file);
-    }
-
-    @Override
     public List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, long userId) {
         return userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
@@ -149,11 +131,6 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public FileTreeNode findFileTree(long id, String oldName, long userId) {
-        return findFileTree(id, false, oldName, userId);
-    }
-
-    @Override
     public Long getFolderId(String path, String name, long userId) {
         UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
                 .select(UserFile::getId)
@@ -179,7 +156,14 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
+    public UserFileTreeNode findUserFileTreesByIds(long id, boolean isDeleted, long userId) {
+        List<UserFileTreeNode> trees = findUserFileTreesByIds(List.of(id), isDeleted, userId);
+        return trees.isEmpty() ? null : trees.get(0);
+    }
+
+    @Override
     public List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, boolean isDeleted, long userId) {
+        // TODO 优化查询字段
         List<UserFileTreeNode> result = new ArrayList<>();
         userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
@@ -204,6 +188,19 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .set(UserFile::getPath, trees.get(0).getValue().getPath())
                 .in(UserFile::getId, trees.stream().map(node -> node.getValue().getId()).toList()));
         trees.forEach(this::updateChildPath);
+    }
+
+    /**
+     * 更新指定节点下所有层级的子节点的path。
+     */
+    private void updateChildPath(UserFileTreeNode node) {
+        if (node.getChildren().isEmpty()) {
+            return;
+        }
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getPath, node.getChildren().get(0).getValue().getPath())
+                .in(UserFile::getId, node.getChildren().stream().map(child -> child.getValue().getId()).toList()));
+        node.getChildren().forEach(this::updateChildPath);
     }
 
     @Override
@@ -245,14 +242,13 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         }
     }
 
-    private void updateChildPath(UserFileTreeNode node) {
-        if (node.getChildren().isEmpty()) {
-            return;
-        }
+    @Override
+    public void updateNameAndPath(UserFileTreeNode node) {
         userFileMapper.update(null, lambdaUpdate(UserFile.class)
-                .set(UserFile::getPath, node.getChildren().get(0).getValue().getPath())
-                .in(UserFile::getId, node.getChildren().stream().map(child -> child.getValue().getId()).toList()));
-        node.getChildren().forEach(this::updateChildPath);
+                .set(UserFile::getName, node.getValue().getName())
+                .set(UserFile::getUpdateTime, LocalDateTime.now())
+                .eq(UserFile::getId, node.getValue().getId()));
+        updateChildPath(node);
     }
 
     private UserFileTreeNode composeUserFileTree(UserFile root, List<UserFile> children) {
@@ -261,68 +257,5 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .filter(file -> root.getId().equals(file.getParentId()))
                 .forEach(file -> node.getChildren().add(composeUserFileTree(file, children)));
         return node;
-    }
-
-    private FileTreeNode findFileTree(long id, boolean isDeleted, String oldName, long userId) {
-        LambdaQueryWrapper<UserFile> queryWrapper = lambdaQuery(UserFile.class)
-                .select(UserFile::getId,
-                        UserFile::getPath,
-                        UserFile::getName,
-                        UserFile::getIsFolder)
-                .select(isDeleted, UserFile::getParentId)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, isDeleted)
-                .eq(UserFile::getId, id);
-        if (isDeleted) {
-            queryWrapper.select(UserFile::getId,
-                    UserFile::getPath,
-                    UserFile::getName,
-                    UserFile::getIsFolder,
-                    UserFile::getParentId);
-        } else {
-            queryWrapper.select(UserFile::getId,
-                    UserFile::getPath,
-                    UserFile::getName,
-                    UserFile::getIsFolder);
-        }
-        UserFile userFile = userFileMapper.selectOne(queryWrapper);
-        if (userFile == null || (isDeleted && userFile.getParentId() != null)) {
-            return null;
-        }
-        FileTreeNode node = convertToTreeNode(userFile);
-        if (!userFile.getIsFolder()) {
-            return node;
-        }
-        List<UserFile> userFiles = userFileMapper.selectList(lambdaQuery(UserFile.class)
-                .select(UserFile::getId,
-                        UserFile::getParentId,
-                        UserFile::getPath,
-                        UserFile::getName,
-                        UserFile::getIsFolder)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, isDeleted)
-                .likeRight(UserFile::getPath, userFile.getPath() + (oldName == null ? userFile.getName() : oldName) + "/"));
-        findChildren(node, userFiles);
-        return node;
-    }
-
-    private FileTreeNode convertToTreeNode(UserFile userFile) {
-        FileTreeNode node = new FileTreeNode();
-        node.setId(userFile.getId());
-        node.setPath(userFile.getPath());
-        node.setName(userFile.getName());
-        node.setFolder(userFile.getIsFolder());
-        node.setChildren(new ArrayList<>());
-        return node;
-    }
-
-    private void findChildren(FileTreeNode node, List<UserFile> userFiles) {
-        userFiles.stream()
-                .filter(file -> file.getParentId() == node.getId())
-                .forEach(file -> {
-                    FileTreeNode child = convertToTreeNode(file);
-                    node.getChildren().add(child);
-                    findChildren(child, userFiles);
-                });
     }
 }

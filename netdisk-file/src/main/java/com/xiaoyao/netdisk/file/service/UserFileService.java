@@ -33,10 +33,10 @@ public interface UserFileService {
     /**
      * 重命名文件或文件夹，如果新名称已存在则会自动生成一个不存在的名称。
      *
-     * @param fileId 文件或文件夹id
+     * @param id 文件或文件夹id
      * @param name   新名称
      */
-    void rename(String fileId, String name);
+    void rename(String id, String name);
 
     /**
      * 复制文件或文件夹到指定的文件夹下。

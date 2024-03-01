@@ -43,6 +43,11 @@ public class UserFileTreeNode {
         });
     }
 
+    public void refreshNameDeeply(String name) {
+        value.setName(name);
+        children.forEach(child -> child.refreshPathDeeply(value.getPath() + value.getName() + "/"));
+    }
+
     public List<UserFile> collectFolder() {
         List<UserFile> folders = new ArrayList<>();
         doCollectFolder(this, folders, true);

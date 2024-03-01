@@ -9,7 +9,6 @@ import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.FolderListDTO;
-import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
@@ -17,7 +16,8 @@ import com.xiaoyao.netdisk.file.service.UserFileService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserFileServiceImpl implements UserFileService {
@@ -59,36 +59,20 @@ public class UserFileServiceImpl implements UserFileService {
     }
 
     @Override
-    public void rename(String fileId, String name) {
+    public void rename(String id, String name) {
         checkName(name);
-        long fid = Long.parseLong(fileId);
         long userId = TokenInterceptor.USER_ID.get();
-        UserFile userFile = userFileRepository.findIsFolderAndParentIdAndNameById(fid, userId);
-        if (userFile == null) {
-            // 文件不存在
+
+        UserFileTreeNode tree = userFileRepository.findUserFileTreesByIds(Long.parseLong(id), false, userId);
+
+        if (tree == null) {
             throw new NetdiskException(E.FILE_NOT_EXIST);
-        } else if (userFileRepository.isNameExist(userFile.getParentId(), name, userId)) {
-            // 存在同名文件或文件夹，更改名称。
-            if (userFile.getIsFolder()) {
-                name = newFolderName(name);
-            } else {
-                name = newFileName(userFile.getParentId(), name, userId);
-            }
+        } else if (userFileRepository.isNameExist(tree.getValue().getParentId(), name, userId)) {
+            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
         }
 
-        boolean isFolder = userFile.getIsFolder();
-        String oldName = userFile.getName();
-        userFile = new UserFile();
-        userFile.setId(fid);
-        userFile.setName(name);
-        userFile.setUpdateTime(LocalDateTime.now());
-        userFileRepository.update(userFile);
-
-        // 修改文件夹名称时，需要修改文件夹下的所有文件的路径。
-        if (isFolder) {
-            FileTreeNode node = userFileRepository.findFileTree(fid, oldName, userId);
-            refreshChildPath(node, node.getPath() + node.getName() + "/");
-        }
+        tree.refreshNameDeeply(name);
+        userFileRepository.updateNameAndPath(tree);
     }
 
     @Override
@@ -171,32 +155,8 @@ public class UserFileServiceImpl implements UserFileService {
         userFileRepository.updateParentIdAndPath(trees, pid);
     }
 
-    private void refreshChildPath(FileTreeNode node, String path) {
-        List<FileTreeNode> children = node.getChildren();
-        long userId = TokenInterceptor.USER_ID.get();
-        if (!children.isEmpty()) {
-            children.forEach(child -> child.setPath(path));
-            userFileRepository.updatePathByParentId(path, node.getId(), userId);
-            children.forEach(child -> {
-                if (child.isFolder()) {
-                    refreshChildPath(child, path + child.getName() + "/");
-                }
-            });
-        }
-    }
-
     private String newFolderName(String filename) {
         return filename + "_" + DateUtil.format(LocalDateTime.now(), "yyyyMMdd_HHmmss");
-    }
-
-    private String newFileName(Long parentId, String filename, long userId) {
-
-        int i = 1;
-        do {
-            filename = StrUtil.format("{}({})", filename, i);
-            i++;
-        } while (userFileRepository.isNameExist(parentId, filename, userId));
-        return filename;
     }
 
     @Override

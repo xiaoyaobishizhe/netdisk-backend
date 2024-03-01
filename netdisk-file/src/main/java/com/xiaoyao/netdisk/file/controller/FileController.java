@@ -37,7 +37,7 @@ public class FileController {
         return R.ok();
     }
 
-    @PutMapping("/name")
+    @PostMapping("/rename")
     public R<Void> rename(@Pattern(regexp = "(^\\d{1,19}$)?") String id,
                           @NotNull @Length(min = 1, max = 250) String name) {
         userFileService.rename(id, name);

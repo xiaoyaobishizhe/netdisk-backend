@@ -3,7 +3,6 @@ package com.xiaoyao.netdisk.file.service.impl;
 import cn.hutool.core.date.DateUtil;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.file.dto.ListRecycleBinDTO;
-import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
@@ -47,17 +46,6 @@ public class RecycleBinServiceImpl implements RecycleBinService {
                         ids.stream().map(Long::parseLong).toList(),
                         false,
                         TokenInterceptor.USER_ID.get()));
-    }
-
-    private void getChildrenIds(FileTreeNode node, List<Long> ids) {
-        if (!node.getChildren().isEmpty()) {
-            for (FileTreeNode child : node.getChildren()) {
-                ids.add(child.getId());
-                if (node.isFolder()) {
-                    getChildrenIds(child, ids);
-                }
-            }
-        }
     }
 
     @Override
