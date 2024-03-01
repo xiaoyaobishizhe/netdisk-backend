@@ -96,7 +96,8 @@ public class UserFileServiceImpl implements UserFileService {
         long userId = TokenInterceptor.USER_ID.get();
         Long pid = StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId);
 
-        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(ids.stream().map(Long::parseLong).toList(), userId);
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(
+                ids.stream().map(Long::parseLong).toList(), false, userId);
 
         // 确保文件都在同一路径下
         if (trees.stream()
@@ -135,7 +136,8 @@ public class UserFileServiceImpl implements UserFileService {
         long userId = TokenInterceptor.USER_ID.get();
         Long pid = StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId);
 
-        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(ids.stream().map(Long::parseLong).toList(), userId);
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(
+                ids.stream().map(Long::parseLong).toList(), false, userId);
 
         // 确保文件都在同一路径下
         if (trees.stream()

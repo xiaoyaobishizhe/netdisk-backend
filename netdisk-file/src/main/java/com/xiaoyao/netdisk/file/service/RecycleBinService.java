@@ -20,16 +20,16 @@ public interface RecycleBinService {
     /**
      * 彻底删除回收站中的文件或文件夹。
      *
-     * @param id 文件或文件夹的id
+     * @param ids 文件或文件夹的id
      */
-    void remove(String id);
+    void remove(List<String> ids);
 
     /**
      * 将回收站中的文件或文件夹还原。
      *
-     * @param id 文件或文件夹的id
+     * @param ids 文件或文件夹的id
      */
-    void restore(String id);
+    void restore(List<String> ids);
 
     /**
      * 清空回收站。

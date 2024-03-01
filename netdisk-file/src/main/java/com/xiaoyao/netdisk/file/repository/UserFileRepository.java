@@ -92,15 +92,6 @@ public interface UserFileRepository {
     FileTreeNode findFileTree(long id, String oldName, long userId);
 
     /**
-     * 查找文件树。
-     *
-     * @param id     文件id
-     * @param userId 用户id
-     * @return 如果文件不存在则返回null
-     */
-    FileTreeNode findFileTree(long id, long userId);
-
-    /**
      * 查找回收站中的文件树。
      *
      * @param id     文件id
@@ -128,15 +119,13 @@ public interface UserFileRepository {
      */
     boolean isAllExist(List<Long> fileList, long userId);
 
-    List<UserFile> findListByIds(List<Long> ids, long userId);
-
-    List<UserFile> findListByPaths(List<String> paths, long userId);
-
     void save(List<UserFile> userFiles);
 
-    List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, long userId);
+    List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, boolean isDeleted, long userId);
 
     void updateParentIdAndPath(List<UserFileTreeNode> trees, Long parentId);
 
     void moveToRecycleBin(List<UserFileTreeNode> trees);
+
+    void moveToUserSpace(List<UserFileTreeNode> trees);
 }

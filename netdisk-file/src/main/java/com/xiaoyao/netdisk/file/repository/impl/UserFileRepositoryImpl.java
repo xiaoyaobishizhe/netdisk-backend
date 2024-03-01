@@ -1,5 +1,6 @@
 package com.xiaoyao.netdisk.file.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
@@ -175,11 +176,6 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public FileTreeNode findFileTree(long id, long userId) {
-        return findFileTree(id, false, null, userId);
-    }
-
-    @Override
     public FileTreeNode findDeletedFileTree(long id, long userId) {
         return findFileTree(id, true, null, userId);
     }
@@ -205,38 +201,21 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public List<UserFile> findListByIds(List<Long> ids, long userId) {
-        return userFileMapper.selectList(lambdaQuery(UserFile.class)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
-                .in(UserFile::getId, ids));
-    }
-
-    @Override
-    public List<UserFile> findListByPaths(List<String> paths, long userId) {
-        return userFileMapper.selectList(lambdaQuery(UserFile.class)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
-                // TODO bug 应该是多个likeRight
-                .in(UserFile::getPath, paths));
-    }
-
-    @Override
     public void save(List<UserFile> userFiles) {
         userFileMapper.insertMany(userFiles);
     }
 
     @Override
-    public List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, long userId) {
+    public List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, boolean isDeleted, long userId) {
         List<UserFileTreeNode> result = new ArrayList<>();
         userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getIsDeleted, isDeleted)
                 .in(UserFile::getId, ids)).forEach(root -> {
             if (root.getIsFolder()) {
                 result.add(composeUserFileTree(root, userFileMapper.selectList(lambdaQuery(UserFile.class)
                         .eq(UserFile::getUserId, userId)
-                        .eq(UserFile::getIsDeleted, false)
+                        .eq(UserFile::getIsDeleted, isDeleted)
                         .likeRight(UserFile::getPath, root.getPath() + root.getName() + "/"))));
             } else {
                 result.add(new UserFileTreeNode(root));
@@ -273,6 +252,26 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         }
     }
 
+    @Override
+    public void moveToUserSpace(List<UserFileTreeNode> trees) {
+        trees.forEach(tree -> userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getParentId, tree.getValue().getParentId())
+                .set(UserFile::getIsDeleted, false)
+                .set(UserFile::getDeleteTime, null)
+                .eq(UserFile::getId, tree.getValue().getId())));
+        List<Long> child = trees.stream()
+                .flatMap(node -> node.collectAll().stream()
+                        .map(UserFile::getId)
+                        .filter(id -> !id.equals(node.getValue().getId())))
+                .toList();
+        if (!child.isEmpty()) {
+            userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                    .set(UserFile::getIsDeleted, false)
+                    .set(UserFile::getDeleteTime, null)
+                    .in(UserFile::getId, child));
+        }
+    }
+
     private void updateChildPath(UserFileTreeNode node) {
         if (node.getChildren().isEmpty()) {
             return;
@@ -286,13 +285,13 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     private UserFileTreeNode composeUserFileTree(UserFile root, List<UserFile> children) {
         UserFileTreeNode node = new UserFileTreeNode(root);
         children.stream()
-                .filter(file -> file.getParentId().equals(root.getId()))
+                .filter(file -> root.getId().equals(file.getParentId()))
                 .forEach(file -> node.getChildren().add(composeUserFileTree(file, children)));
         return node;
     }
 
     private FileTreeNode findFileTree(long id, boolean isDeleted, String oldName, long userId) {
-        UserFile userFile = userFileMapper.selectOne(lambdaQuery(UserFile.class)
+        LambdaQueryWrapper<UserFile> queryWrapper = lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
                         UserFile::getPath,
                         UserFile::getName,
@@ -300,7 +299,20 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .select(isDeleted, UserFile::getParentId)
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, isDeleted)
-                .eq(UserFile::getId, id));
+                .eq(UserFile::getId, id);
+        if (isDeleted) {
+            queryWrapper.select(UserFile::getId,
+                    UserFile::getPath,
+                    UserFile::getName,
+                    UserFile::getIsFolder,
+                    UserFile::getParentId);
+        } else {
+            queryWrapper.select(UserFile::getId,
+                    UserFile::getPath,
+                    UserFile::getName,
+                    UserFile::getIsFolder);
+        }
+        UserFile userFile = userFileMapper.selectOne(queryWrapper);
         if (userFile == null || (isDeleted && userFile.getParentId() != null)) {
             return null;
         }
