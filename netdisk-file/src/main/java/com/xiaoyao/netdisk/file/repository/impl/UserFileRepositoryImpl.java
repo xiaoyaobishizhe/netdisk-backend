@@ -256,21 +256,19 @@ public class UserFileRepositoryImpl implements UserFileRepository {
 
     @Override
     public void moveToRecycleBin(List<UserFileTreeNode> trees) {
-        System.out.println(trees.stream().map(node -> node.getValue().getId()).toList());
         userFileMapper.update(null, lambdaUpdate(UserFile.class)
                 .set(UserFile::getParentId, null)
                 .set(UserFile::getIsDeleted, true)
                 .set(UserFile::getDeleteTime, LocalDateTime.now())
                 .in(UserFile::getId, trees.stream().map(node -> node.getValue().getId()).toList()));
         List<Long> child = trees.stream()
-                .flatMap(node -> node.collectFolder().stream()
+                .flatMap(node -> node.collectAll().stream()
                         .map(UserFile::getId)
                         .filter(id -> !id.equals(node.getValue().getId())))
                 .toList();
         if (!child.isEmpty()) {
             userFileMapper.update(null, lambdaUpdate(UserFile.class)
                     .set(UserFile::getIsDeleted, true)
-                    .set(UserFile::getDeleteTime, LocalDateTime.now())
                     .in(UserFile::getId, child));
         }
     }
@@ -289,9 +287,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         UserFileTreeNode node = new UserFileTreeNode(root);
         children.stream()
                 .filter(file -> file.getParentId().equals(root.getId()))
-                .forEach(file -> {
-                    node.getChildren().add(composeUserFileTree(file, children));
-                });
+                .forEach(file -> node.getChildren().add(composeUserFileTree(file, children)));
         return node;
     }
 

@@ -54,14 +54,21 @@ public class UserFileTreeNode {
 
     public List<UserFile> collectFolder() {
         List<UserFile> folders = new ArrayList<>();
-        doCollectFolder(this, folders);
+        doCollectFolder(this, folders, true);
         return folders;
     }
 
-    private void doCollectFolder(UserFileTreeNode node, List<UserFile> folders) {
-        if (node.value.getIsFolder()) {
-            folders.add(node.value);
+    public List<UserFile> collectAll() {
+        List<UserFile> files = new ArrayList<>();
+        doCollectFolder(this, files, false);
+        return files;
+    }
+
+    private void doCollectFolder(UserFileTreeNode node, List<UserFile> folders, boolean onlyFolder) {
+        if (onlyFolder && !node.value.getIsFolder()) {
+            return;
         }
-        node.children.forEach(child -> doCollectFolder(child, folders));
+        folders.add(node.value);
+        node.children.forEach(child -> doCollectFolder(child, folders, onlyFolder));
     }
 }
