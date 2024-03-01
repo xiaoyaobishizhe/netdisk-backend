@@ -133,4 +133,8 @@ public interface UserFileRepository {
     List<UserFile> findListByPaths(List<String> paths, long userId);
 
     void banchSave(List<UserFile> userFiles);
+
+    List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, long userId);
+
+    void updateParentIdAndPath(List<UserFileTreeNode> trees, Long parentId);
 }

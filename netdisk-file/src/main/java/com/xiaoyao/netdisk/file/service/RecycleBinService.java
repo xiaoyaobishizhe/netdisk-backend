@@ -11,7 +11,7 @@ public interface RecycleBinService {
     /**
      * 将文件或文件夹移动到回收站中。
      *
-     * @param id 文件或文件夹的id
+     * @param ids 文件或文件夹的id
      */
     void delete(String id);
 

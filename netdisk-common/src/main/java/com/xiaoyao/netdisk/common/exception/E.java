@@ -25,6 +25,8 @@ public enum E {
     SHARE_NOT_EXIST(1018, "分享不存在"),
     SHARE_TIMEOUT(1019, "分享已过期"),
     SHARE_PASSWORD_ERROR(1020, "分享提取码错误"),
+    CANNOT_MOVE_TO_SELF_OR_CHILD(1021, "不能移动到自身或子文件夹"),
+    FILE_NOT_SAME_PATH(1022, "文件不在同一路径下"),
     ;
 
     private final int code;

@@ -2,6 +2,7 @@ package com.xiaoyao.netdisk.file.repository.impl;
 
 import com.xiaoyao.netdisk.file.repository.FileTreeNode;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
+import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Repository;
@@ -216,12 +217,61 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         return userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .eq(UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, false)
+                // TODO bug 应该是多个likeRight
                 .in(UserFile::getPath, paths));
     }
 
     @Override
     public void banchSave(List<UserFile> userFiles) {
         userFileMapper.insertMany(userFiles);
+    }
+
+    @Override
+    public List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, long userId) {
+        List<UserFileTreeNode> result = new ArrayList<>();
+        userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .in(UserFile::getId, ids)).forEach(root -> {
+            if (root.getIsFolder()) {
+                result.add(composeUserFileTree(root, userFileMapper.selectList(lambdaQuery(UserFile.class)
+                        .eq(UserFile::getUserId, userId)
+                        .eq(UserFile::getIsDeleted, false)
+                        .likeRight(UserFile::getPath, root.getPath() + root.getName() + "/"))));
+            } else {
+                result.add(new UserFileTreeNode(root));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public void updateParentIdAndPath(List<UserFileTreeNode> trees, Long parentId) {
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getParentId, parentId)
+                .set(UserFile::getPath, trees.get(0).getValue().getPath())
+                .in(UserFile::getId, trees.stream().map(node -> node.getValue().getId()).toList()));
+        trees.forEach(this::updateChildPath);
+    }
+
+    private void updateChildPath(UserFileTreeNode node) {
+        if (node.getChildren().isEmpty()) {
+            return;
+        }
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getPath, node.getChildren().get(0).getValue().getPath())
+                .in(UserFile::getId, node.getChildren().stream().map(child -> child.getValue().getId()).toList()));
+        node.getChildren().forEach(this::updateChildPath);
+    }
+
+    private UserFileTreeNode composeUserFileTree(UserFile root, List<UserFile> children) {
+        UserFileTreeNode node = new UserFileTreeNode(root);
+        children.stream()
+                .filter(file -> file.getParentId().equals(root.getId()))
+                .forEach(file -> {
+                    node.getChildren().add(composeUserFileTree(file, children));
+                });
+        return node;
     }
 
     private FileTreeNode findFileTree(long id, boolean isDeleted, String oldName, long userId) {

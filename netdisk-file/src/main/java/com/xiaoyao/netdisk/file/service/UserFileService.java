@@ -45,4 +45,12 @@ public interface UserFileService {
      * @param parentId 父文件夹id，如果为根路径则值为null
      */
     void copy(List<String> ids, String parentId);
+
+    /**
+     * 移动文件或文件夹到指定的文件夹下。
+     *
+     * @param ids      要移动的文件或文件夹
+     * @param parentId 父文件夹id，如果为根路径则值为null
+     */
+    void move(List<String> ids, String parentId);
 }

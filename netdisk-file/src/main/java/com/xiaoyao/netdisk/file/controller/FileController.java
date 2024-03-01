@@ -78,9 +78,16 @@ public class FileController {
     }
 
     @PostMapping("/copy")
-    public R<FolderListDTO> copy(@Size String[] ids,
+    public R<FolderListDTO> copy(@Size(min = 1) String[] ids,
                                  @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
         userFileService.copy(Arrays.stream(ids).toList(), parentId);
+        return R.ok();
+    }
+
+    @PostMapping("/move")
+    public R<FolderListDTO> move(@Size(min = 1) String[] ids,
+                                 @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+        userFileService.move(Arrays.stream(ids).toList(), parentId);
         return R.ok();
     }
 }
