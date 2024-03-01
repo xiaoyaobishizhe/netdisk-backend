@@ -1,8 +1,6 @@
 package com.xiaoyao.netdisk.file.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import com.xiaoyao.netdisk.common.exception.E;
-import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.file.dto.ListRecycleBinDTO;
 import com.xiaoyao.netdisk.file.repository.FileTreeNode;
@@ -64,18 +62,13 @@ public class RecycleBinServiceImpl implements RecycleBinService {
 
     @Override
     public void remove(List<String> ids) {
-        ids.forEach(id -> {
-            long userId = TokenInterceptor.USER_ID.get();
-            long fid = Long.parseLong(id);
-            FileTreeNode node = userFileRepository.findDeletedFileTree(fid, userId);
-            if (node == null) {
-                throw new NetdiskException(E.FILE_NOT_EXIST);
-            }
-            List<Long> targetIds = new ArrayList<>();
-            targetIds.add(fid);
-            getChildrenIds(node, targetIds);
-            userFileRepository.delete(targetIds, userId);
-        });
+        long userId = TokenInterceptor.USER_ID.get();
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(
+                ids.stream().map(Long::parseLong).toList(), true, userId);
+        userFileRepository.delete(trees.stream()
+                .flatMap(tree -> tree.collectAll().stream())
+                .map(UserFile::getId)
+                .toList());
     }
 
     @Override

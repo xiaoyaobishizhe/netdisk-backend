@@ -73,11 +73,7 @@ public interface UserFileRepository {
 
     List<UserFile> listDeleted(long userId);
 
-    void updateParentId(long fid, Long parentId, boolean isDeleted, long userId);
-
-    void updateIsDeleted(List<Long> ids, boolean isDeleted, long userId);
-
-    void delete(List<Long> ids, long userId);
+    void delete(List<Long> ids);
 
     void deleteAllDeleted(long userId);
 
@@ -90,15 +86,6 @@ public interface UserFileRepository {
      * @return 如果文件不存在则返回null
      */
     FileTreeNode findFileTree(long id, String oldName, long userId);
-
-    /**
-     * 查找回收站中的文件树。
-     *
-     * @param id     文件id
-     * @param userId 用户id
-     * @return 如果文件不存在则返回null
-     */
-    FileTreeNode findDeletedFileTree(long id, long userId);
 
     /**
      * 获取指定路径下的文件夹的id。

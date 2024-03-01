@@ -136,30 +136,8 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public void updateParentId(long fid, Long parentId, boolean isDeleted, long userId) {
-        userFileMapper.update(null, lambdaUpdate(UserFile.class)
-                .set(isDeleted, UserFile::getParentId, parentId)
-                .set(!isDeleted, UserFile::getParentId, null)
-                .set(!isDeleted, UserFile::getDeleteTime, LocalDateTime.now())
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, isDeleted)
-                .eq(UserFile::getId, fid));
-    }
-
-    @Override
-    public void updateIsDeleted(List<Long> ids, boolean isDeleted, long userId) {
-        userFileMapper.update(null, lambdaUpdate(UserFile.class)
-                .set(UserFile::getIsDeleted, isDeleted)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, !isDeleted)
-                .in(UserFile::getId, ids));
-    }
-
-    @Override
-    public void delete(List<Long> ids, long userId) {
+    public void delete(List<Long> ids) {
         userFileMapper.delete(lambdaQuery(UserFile.class)
-                .eq(UserFile::getUserId, userId)
-                .eq(UserFile::getIsDeleted, true)
                 .in(UserFile::getId, ids));
     }
 
@@ -173,11 +151,6 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     @Override
     public FileTreeNode findFileTree(long id, String oldName, long userId) {
         return findFileTree(id, false, oldName, userId);
-    }
-
-    @Override
-    public FileTreeNode findDeletedFileTree(long id, long userId) {
-        return findFileTree(id, true, null, userId);
     }
 
     @Override
