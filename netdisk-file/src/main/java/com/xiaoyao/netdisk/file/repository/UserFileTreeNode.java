@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,19 +17,6 @@ public class UserFileTreeNode {
         this.value = value;
     }
 
-    public UserFileTreeNode refreshIdDeeply(long id) {
-        doRefreshIdDeeply(this, id);
-        return this;
-    }
-
-    private void doRefreshIdDeeply(UserFileTreeNode node, long id) {
-        node.value.setId(id);
-        node.children.forEach(child -> {
-            child.value.setParentId(id);
-            doRefreshIdDeeply(child, IdUtil.getSnowflakeNextId());
-        });
-    }
-
     public void refreshPathDeeply(String path) {
         doRefreshPathDeeply(this, path);
     }
@@ -38,17 +26,20 @@ public class UserFileTreeNode {
         node.children.forEach(child -> doRefreshPathDeeply(child, node.value.getPath() + node.value.getName() + "/"));
     }
 
-    public UserFileTreeNode refreshIdAndPathDeeply(long id, String path) {
-        doRefreshIdAndPathDeeply(this, id, path);
-        return this;
+    public void refreshIdAndPathDeeply(long id, String path, boolean refreshTime) {
+        doRefreshIdAndPathDeeply(this, id, path, refreshTime);
     }
 
-    private void doRefreshIdAndPathDeeply(UserFileTreeNode node, long id, String path) {
+    private void doRefreshIdAndPathDeeply(UserFileTreeNode node, long id, String path, boolean refreshTime) {
         node.value.setId(id);
         node.value.setPath(path);
+        if (refreshTime) {
+            node.value.setCreateTime(LocalDateTime.now());
+            node.value.setUpdateTime(LocalDateTime.now());
+        }
         node.children.forEach(child -> {
             child.value.setParentId(id);
-            doRefreshIdAndPathDeeply(child, IdUtil.getSnowflakeNextId(), path + node.value.getName() + "/");
+            doRefreshIdAndPathDeeply(child, IdUtil.getSnowflakeNextId(), path + node.value.getName() + "/", refreshTime);
         });
     }
 

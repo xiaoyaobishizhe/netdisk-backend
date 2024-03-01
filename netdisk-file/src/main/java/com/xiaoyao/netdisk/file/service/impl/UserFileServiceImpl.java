@@ -96,66 +96,38 @@ public class UserFileServiceImpl implements UserFileService {
         long userId = TokenInterceptor.USER_ID.get();
         Long pid = StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId);
 
-        // 找到最顶层文件
-        List<UserFile> rootFiles = userFileRepository.findListByIds(
-                ids.stream().map(Long::parseLong).distinct().toList(), userId);
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTreesByIds(ids.stream().map(Long::parseLong).toList(), userId);
 
-        // 确保所有名称在目标文件夹下都不存在
-        List<String> names = new ArrayList<>();
-        rootFiles.forEach(file -> names.add(file.getName()));
-        if (userFileRepository.isNameExist(pid, names, userId)) {
-            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
+        // 确保文件都在同一路径下
+        if (trees.stream()
+                .map(node -> node.getValue().getParentId() == null ? 0 : node.getValue().getParentId())
+                .distinct()
+                .count() != 1) {
+            throw new NetdiskException(E.FILE_NOT_SAME_PATH);
         }
 
-        // 向下搜索所有子文件（深拷贝）
-        List<String> paths = new ArrayList<>();
-        rootFiles.forEach(file -> {
-            if (file.getIsFolder()) {
-                paths.add(file.getPath() + file.getName() + "/");
-            }
+        // 不能将文件复制到自身或其子目录下
+        trees.forEach(tree -> {
+            tree.collectFolder().forEach(folder -> {
+                if (folder.getId().equals(pid)) {
+                    throw new NetdiskException(E.CANNOT_MOVE_TO_SELF_OR_CHILD);
+                }
+            });
         });
-        Map<Long, List<UserFile>> children = new HashMap<>();    // key为父文件夹id，value为子文件
-        if (!paths.isEmpty()) {
-            userFileRepository.findListByPaths(paths, userId).forEach(userFile ->
-                    children.computeIfAbsent(userFile.getParentId(), id -> new ArrayList<>()).add(userFile));
+
+        // 确保所有名称在目标文件夹下都不存在
+        if (userFileRepository.isNameExist(pid, trees.stream().map(node -> node.getValue().getName()).toList(), userId)) {
+            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
         }
 
         // 重新组装文件从属关系
         String path = pid == null ? "/" : userFileRepository.getPathByFolderId(pid, userId);
-        List<UserFile> userFiles = new ArrayList<>();
-        Queue<UserFile> taskQueue = new ArrayDeque<>();   // 通过栈来代替递归
-        rootFiles.forEach(rootFile -> {
-            if (rootFile.getIsFolder()) {
-                rootFile.setPath(path);
-                rootFile.setParentId(pid);
-                taskQueue.add(rootFile);
-            } else {
-                rootFile.setId(IdUtil.getSnowflakeNextId());
-                rootFile.setPath(path);
-                rootFile.setParentId(pid);
-                rootFile.setCreateTime(LocalDateTime.now());
-                rootFile.setUpdateTime(LocalDateTime.now());
-                userFiles.add(rootFile);
-            }
+        trees.forEach(tree -> {
+            tree.getValue().setParentId(pid);
+            tree.refreshIdAndPathDeeply(IdUtil.getSnowflakeNextId(), path, true);
         });
-        UserFile current;
-        while ((current = taskQueue.poll()) != null) {
-            List<UserFile> childTask = children.get(current.getId());
-            current.setId(IdUtil.getSnowflakeNextId());
-            if (childTask != null) {
-                for (UserFile child : childTask) {
-                    child.setPath(current.getPath() + current.getName() + "/");
-                    child.setParentId(current.getId());
-                    taskQueue.add(child);
-                }
-            }
-            current.setCreateTime(LocalDateTime.now());
-            current.setUpdateTime(LocalDateTime.now());
-            userFiles.add(current);
-        }
 
-        // 批量插入
-        userFileRepository.banchSave(userFiles);
+        userFileRepository.save(trees.stream().flatMap(tree -> tree.collectAll().stream()).toList());
     }
 
     @Override

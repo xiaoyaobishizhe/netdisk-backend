@@ -222,7 +222,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public void banchSave(List<UserFile> userFiles) {
+    public void save(List<UserFile> userFiles) {
         userFileMapper.insertMany(userFiles);
     }
 
