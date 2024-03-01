@@ -254,6 +254,27 @@ public class UserFileRepositoryImpl implements UserFileRepository {
         trees.forEach(this::updateChildPath);
     }
 
+    @Override
+    public void moveToRecycleBin(List<UserFileTreeNode> trees) {
+        System.out.println(trees.stream().map(node -> node.getValue().getId()).toList());
+        userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                .set(UserFile::getParentId, null)
+                .set(UserFile::getIsDeleted, true)
+                .set(UserFile::getDeleteTime, LocalDateTime.now())
+                .in(UserFile::getId, trees.stream().map(node -> node.getValue().getId()).toList()));
+        List<Long> child = trees.stream()
+                .flatMap(node -> node.collectFolder().stream()
+                        .map(UserFile::getId)
+                        .filter(id -> !id.equals(node.getValue().getId())))
+                .toList();
+        if (!child.isEmpty()) {
+            userFileMapper.update(null, lambdaUpdate(UserFile.class)
+                    .set(UserFile::getIsDeleted, true)
+                    .set(UserFile::getDeleteTime, LocalDateTime.now())
+                    .in(UserFile::getId, child));
+        }
+    }
+
     private void updateChildPath(UserFileTreeNode node) {
         if (node.getChildren().isEmpty()) {
             return;

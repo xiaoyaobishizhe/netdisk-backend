@@ -6,6 +6,7 @@ import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.FolderListDTO;
 import com.xiaoyao.netdisk.file.dto.ShardingDTO;
 import com.xiaoyao.netdisk.file.service.FileUploadService;
+import com.xiaoyao.netdisk.file.service.RecycleBinService;
 import com.xiaoyao.netdisk.file.service.UserFileService;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.Length;
@@ -20,10 +21,13 @@ import java.util.Arrays;
 public class FileController {
     private final UserFileService userFileService;
     private final FileUploadService fileUploadService;
+    private final RecycleBinService recycleBinService;
 
-    public FileController(UserFileService userFileService, FileUploadService fileUploadService) {
+    public FileController(UserFileService userFileService, FileUploadService fileUploadService,
+                          RecycleBinService recycleBinService) {
         this.userFileService = userFileService;
         this.fileUploadService = fileUploadService;
+        this.recycleBinService = recycleBinService;
     }
 
     @PutMapping("/folder")
@@ -78,16 +82,22 @@ public class FileController {
     }
 
     @PostMapping("/copy")
-    public R<FolderListDTO> copy(@Size(min = 1) String[] ids,
-                                 @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+    public R<Void> copy(@Size(min = 1) String[] ids,
+                        @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
         userFileService.copy(Arrays.stream(ids).toList(), parentId);
         return R.ok();
     }
 
     @PostMapping("/move")
-    public R<FolderListDTO> move(@Size(min = 1) String[] ids,
-                                 @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+    public R<Void> move(@Size(min = 1) String[] ids,
+                        @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
         userFileService.move(Arrays.stream(ids).toList(), parentId);
+        return R.ok();
+    }
+
+    @PostMapping("/delete")
+    public R<Void> delete(@Size(min = 1) String[] ids) {
+        recycleBinService.delete(Arrays.stream(ids).toList());
         return R.ok();
     }
 }

@@ -23,7 +23,7 @@ public class UserFileTreeNode {
 
     private void doRefreshIdDeeply(UserFileTreeNode node, long id) {
         node.value.setId(id);
-        children.forEach(child -> {
+        node.children.forEach(child -> {
             child.value.setParentId(id);
             doRefreshIdDeeply(child, IdUtil.getSnowflakeNextId());
         });
@@ -35,10 +35,7 @@ public class UserFileTreeNode {
 
     private void doRefreshPathDeeply(UserFileTreeNode node, String path) {
         node.value.setPath(path);
-        if (node.children.isEmpty()) {
-            return;
-        }
-        children.forEach(child -> doRefreshPathDeeply(child, node.value.getPath() + node.value.getName() + "/"));
+        node.children.forEach(child -> doRefreshPathDeeply(child, node.value.getPath() + node.value.getName() + "/"));
     }
 
     public UserFileTreeNode refreshIdAndPathDeeply(long id, String path) {
@@ -49,7 +46,7 @@ public class UserFileTreeNode {
     private void doRefreshIdAndPathDeeply(UserFileTreeNode node, long id, String path) {
         node.value.setId(id);
         node.value.setPath(path);
-        children.forEach(child -> {
+        node.children.forEach(child -> {
             child.value.setParentId(id);
             doRefreshIdAndPathDeeply(child, IdUtil.getSnowflakeNextId(), path + node.value.getName() + "/");
         });

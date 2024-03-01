@@ -2,6 +2,8 @@ package com.xiaoyao.netdisk.file.service;
 
 import com.xiaoyao.netdisk.file.dto.ListRecycleBinDTO;
 
+import java.util.List;
+
 public interface RecycleBinService {
     /**
      * 查看回收站中的文件和文件夹。
@@ -13,7 +15,7 @@ public interface RecycleBinService {
      *
      * @param ids 文件或文件夹的id
      */
-    void delete(String id);
+    void delete(List<String> ids);
 
     /**
      * 彻底删除回收站中的文件或文件夹。

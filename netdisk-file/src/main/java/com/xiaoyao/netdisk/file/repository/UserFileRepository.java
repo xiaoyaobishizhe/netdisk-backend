@@ -137,4 +137,6 @@ public interface UserFileRepository {
     List<UserFileTreeNode> findUserFileTreesByIds(List<Long> ids, long userId);
 
     void updateParentIdAndPath(List<UserFileTreeNode> trees, Long parentId);
+
+    void moveToRecycleBin(List<UserFileTreeNode> trees);
 }

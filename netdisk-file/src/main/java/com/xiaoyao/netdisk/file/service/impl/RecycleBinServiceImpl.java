@@ -42,18 +42,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     }
 
     @Override
-    public void delete(String id) {
-        long userId = TokenInterceptor.USER_ID.get();
-        long fid = Long.parseLong(id);
-        FileTreeNode node = userFileRepository.findFileTree(fid, userId);
-        if (node == null) {
-            throw new NetdiskException(E.FILE_NOT_EXIST);
-        }
-        userFileRepository.updateParentId(fid, null, false, userId);
-        List<Long> ids = new ArrayList<>();
-        ids.add(fid);
-        getChildrenIds(node, ids);
-        userFileRepository.updateIsDeleted(ids, true, userId);
+    public void delete(List<String> ids) {
+        userFileRepository.moveToRecycleBin(
+                userFileRepository.findUserFileTreesByIds(
+                        ids.stream().map(Long::parseLong).toList(),
+                        TokenInterceptor.USER_ID.get()));
     }
 
     private void getChildrenIds(FileTreeNode node, List<Long> ids) {
