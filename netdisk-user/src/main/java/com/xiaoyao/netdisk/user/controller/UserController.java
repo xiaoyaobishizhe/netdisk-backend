@@ -4,6 +4,7 @@ import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.user.dto.UserInfoDTO;
 import com.xiaoyao.netdisk.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,8 @@ public class UserController {
     }
 
     @GetMapping
-    public R<UserInfoDTO> info() {
-        return R.ok(userService.info());
+    public R<UserInfoDTO> info(@Pattern(regexp = "(^\\d{1,19}$)?") String userId) {
+        return R.ok(userService.info(userId));
     }
 
     @PostMapping("/login")

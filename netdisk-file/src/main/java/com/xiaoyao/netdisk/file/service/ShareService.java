@@ -33,9 +33,9 @@ public interface ShareService {
     /**
      * 删除分享。
      *
-     * @param id 分享的id
+     * @param ids 分享的id
      */
-    void deleteShare(String id);
+    void deleteShare(List<String> ids);
 
     /**
      * 获取分享的访问token。
@@ -54,4 +54,12 @@ public interface ShareService {
      * @return 文件列表
      */
     FileListDTO list(String token, String parentId);
+
+    /**
+     * 查看分享者的用户id。
+     *
+     * @param code 分享的code
+     * @return 分享者的用户id
+     */
+    long getUserId(String code);
 }

@@ -11,5 +11,11 @@ public interface UserService {
 
     void changePassword(String oldPassword, String newPassword);
 
-    UserInfoDTO info();
+    /**
+     * 查询用户信息，如果userId为null则查询当前登录用户的信息。
+     *
+     * @param userId 用户id
+     * @return 用户信息
+     */
+    UserInfoDTO info(String userId);
 }

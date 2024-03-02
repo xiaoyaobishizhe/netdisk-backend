@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ShareServiceImpl implements ShareService {
@@ -54,20 +55,23 @@ public class ShareServiceImpl implements ShareService {
     @Override
     public String createShare(String name, String password, int timeout, List<Long> fileList) {
         long userId = TokenInterceptor.USER_ID.get();
-        if (userFileRepository.isAllExist(fileList, userId)) {
+        if (!userFileRepository.isAllExist(fileList, userId)) {
             throw new NetdiskException(E.FILE_NOT_EXIST);
         }
         Share share = new Share();
         share.setUserId(userId);
         share.setName(name);
         share.setCode(RandomUtil.randomString(30));
-        share.setPassword(password.isEmpty() ? RandomUtil.randomString(RandomUtil.BASE_CHAR_NUMBER_LOWER, 4) : password);
+        share.setPassword(StrUtil.isEmpty(password) ? RandomUtil.randomString(RandomUtil.BASE_CHAR_NUMBER_LOWER, 4) : password);
         share.setToken(RandomUtil.randomString(100));
         share.setFileList(fileList);
         share.setTimeout(timeout);
         share.setCreateTime(LocalDateTime.now());
         shareRepository.save(share);
-        return StrUtil.format(shareProperties.getUrlMode(), share.getCode(), share.getPassword());
+        return StrUtil.format(shareProperties.getUrlMode(), Map.of(
+                "code", share.getCode(),
+                "pwd", share.getPassword()
+        ));
     }
 
     @Override
@@ -79,15 +83,15 @@ public class ShareServiceImpl implements ShareService {
         } else if (share.getTimeout() != 0 && share.getCreateTime().plusDays(share.getTimeout()).isBefore(LocalDateTime.now())) {
             throw new NetdiskException(E.SHARE_TIMEOUT);
         }
-        return StrUtil.format(shareProperties.getUrlMode(), share.getCode(), share.getPassword());
+        return StrUtil.format(shareProperties.getUrlMode(), Map.of(
+                "code", share.getCode(),
+                "pwd", share.getPassword()
+        ));
     }
 
     @Override
-    public void deleteShare(String id) {
-        long userId = TokenInterceptor.USER_ID.get();
-        if (!shareRepository.deleteShare(Long.parseLong(id), userId)) {
-            throw new NetdiskException(E.SHARE_NOT_EXIST);
-        }
+    public void deleteShare(List<String> ids) {
+        shareRepository.deleteShare(ids.stream().map(Long::parseLong).toList(), TokenInterceptor.USER_ID.get());
     }
 
     @Override
@@ -106,5 +110,14 @@ public class ShareServiceImpl implements ShareService {
     @Override
     public FileListDTO list(String token, String parentId) {
         return null;
+    }
+
+    @Override
+    public long getUserId(String code) {
+        Long userId = shareRepository.getUserIdByCode(code);
+        if (userId == null) {
+            throw new NetdiskException(E.SHARE_NOT_EXIST);
+        }
+        return userId;
     }
 }

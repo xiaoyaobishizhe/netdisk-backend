@@ -1,5 +1,6 @@
 package com.xiaoyao.netdisk.user.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.util.SecureUtil;
@@ -68,8 +69,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoDTO info() {
-        User user = userRepository.findInfoById(TokenInterceptor.USER_ID.get());
+    public UserInfoDTO info(String userId) {
+        User user = userRepository.findInfoById(
+                StrUtil.isEmpty(userId) ? TokenInterceptor.USER_ID.get() : Long.parseLong(userId));
         UserInfoDTO dto = new UserInfoDTO();
         dto.setNickname(user.getNickname());
         return dto;

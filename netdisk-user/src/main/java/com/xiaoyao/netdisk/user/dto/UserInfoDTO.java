@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class UserInfoDTO {
+    private String avatar;
     private String nickname;
 }

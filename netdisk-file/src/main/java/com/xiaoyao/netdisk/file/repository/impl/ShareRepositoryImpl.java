@@ -44,10 +44,10 @@ public class ShareRepositoryImpl implements ShareRepository {
     }
 
     @Override
-    public boolean deleteShare(long id, long userId) {
-        return shareMapper.delete(lambdaQuery(Share.class)
-                .eq(Share::getId, id)
-                .eq(Share::getUserId, userId)) > 0;
+    public void deleteShare(List<Long> ids, long userId) {
+        shareMapper.delete(lambdaQuery(Share.class)
+                .in(Share::getId, ids)
+                .eq(Share::getUserId, userId));
     }
 
     @Override
@@ -58,5 +58,13 @@ public class ShareRepositoryImpl implements ShareRepository {
                         Share::getTimeout,
                         Share::getCreateTime)
                 .eq(Share::getCode, code));
+    }
+
+    @Override
+    public Long getUserIdByCode(String code) {
+        Share share = shareMapper.selectOne(lambdaQuery(Share.class)
+                .select(Share::getUserId)
+                .eq(Share::getCode, code));
+        return share == null ? null : share.getUserId();
     }
 }
