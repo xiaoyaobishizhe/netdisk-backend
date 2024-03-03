@@ -13,6 +13,6 @@ public class ListSharesDTO {
         private String id;
         private String name;
         private String createTime;
-        private Integer timeout;
+        private String status;
     }
 }

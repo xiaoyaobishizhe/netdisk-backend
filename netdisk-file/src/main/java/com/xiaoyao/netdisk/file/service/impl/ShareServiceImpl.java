@@ -18,7 +18,9 @@ import com.xiaoyao.netdisk.file.service.UserFileService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +52,10 @@ public class ShareServiceImpl implements ShareService {
             item.setId(String.valueOf(share.getId()));
             item.setName(share.getName());
             item.setCreateTime(DateUtil.format(share.getCreateTime(), "yyyy-MM-dd HH:mm"));
-            item.setTimeout(share.getTimeout());
+            // 计算剩余过期天数，如果剩余天数不足一天则显示为1天。
+            item.setStatus(share.getTimeout() == 0 ? "永久有效" : DateUtil.betweenDay(
+                    Date.from(share.getCreateTime().plusDays(share.getTimeout()).atZone(ZoneId.systemDefault())
+                            .toInstant()), new Date(), true) + "天后过期");
             items.add(item);
         });
         return dto;
