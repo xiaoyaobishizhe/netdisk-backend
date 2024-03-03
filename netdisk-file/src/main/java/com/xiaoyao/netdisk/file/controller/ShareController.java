@@ -2,6 +2,7 @@ package com.xiaoyao.netdisk.file.controller;
 
 import com.xiaoyao.netdisk.common.exception.R;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
+import com.xiaoyao.netdisk.file.dto.LinkInfoDTO;
 import com.xiaoyao.netdisk.file.dto.ListSharesDTO;
 import com.xiaoyao.netdisk.file.service.ShareService;
 import jakarta.validation.constraints.NotNull;
@@ -32,10 +33,10 @@ public class ShareController {
     }
 
     @PostMapping("/create")
-    public R<String> create(@NotNull @Length(min = 1, max = 250) String name,
-                            @Pattern(regexp = "(^[0-9a-z]{4}$)?") String password,
-                            @NotNull Integer timeout,
-                            @Size(min = 1) String[] ids) {
+    public R<LinkInfoDTO> create(@NotNull @Length(min = 1, max = 250) String name,
+                                 @Pattern(regexp = "(^[0-9a-z]{4}$)?") String password,
+                                 @NotNull Integer timeout,
+                                 @Size(min = 1) String[] ids) {
         return R.ok(shareService.createShare(name, password, timeout, Arrays.stream(ids).map(Long::parseLong).toList()));
     }
 
@@ -45,8 +46,8 @@ public class ShareController {
         return R.ok();
     }
 
-    @GetMapping("/link")
-    public R<String> link(@NotNull @Pattern(regexp = "^\\d{1,19}$") String id) {
+    @GetMapping("/link-info")
+    public R<LinkInfoDTO> linkInfo(@NotNull @Pattern(regexp = "^\\d{1,19}$") String id) {
         return R.ok(shareService.getShareLink(id));
     }
 

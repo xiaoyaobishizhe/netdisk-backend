@@ -7,8 +7,8 @@ import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
+import com.xiaoyao.netdisk.file.dto.LinkInfoDTO;
 import com.xiaoyao.netdisk.file.dto.ListSharesDTO;
-import com.xiaoyao.netdisk.file.properties.ShareProperties;
 import com.xiaoyao.netdisk.file.repository.ShareRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
@@ -28,14 +28,12 @@ import java.util.Map;
 public class ShareServiceImpl implements ShareService {
     private final ShareRepository shareRepository;
     private final UserFileRepository userFileRepository;
-    private final ShareProperties shareProperties;
     private final UserFileService userFileService;
 
     public ShareServiceImpl(ShareRepository shareRepository, UserFileRepository userFileRepository,
-                            ShareProperties shareProperties, UserFileService userFileService) {
+                            UserFileService userFileService) {
         this.shareRepository = shareRepository;
         this.userFileRepository = userFileRepository;
-        this.shareProperties = shareProperties;
         this.userFileService = userFileService;
     }
 
@@ -62,7 +60,7 @@ public class ShareServiceImpl implements ShareService {
     }
 
     @Override
-    public String createShare(String name, String password, int timeout, List<Long> fileList) {
+    public LinkInfoDTO createShare(String name, String password, int timeout, List<Long> fileList) {
         long userId = TokenInterceptor.USER_ID.get();
         if (!userFileRepository.isAllExist(fileList, userId)) {
             throw new NetdiskException(E.FILE_NOT_EXIST);
@@ -77,14 +75,11 @@ public class ShareServiceImpl implements ShareService {
         share.setTimeout(timeout);
         share.setCreateTime(LocalDateTime.now());
         shareRepository.save(share);
-        return StrUtil.format(shareProperties.getUrlMode(), Map.of(
-                "code", share.getCode(),
-                "pwd", share.getPassword()
-        ));
+        return new LinkInfoDTO(share.getCode(), share.getPassword());
     }
 
     @Override
-    public String getShareLink(String id) {
+    public LinkInfoDTO getShareLink(String id) {
         long userId = TokenInterceptor.USER_ID.get();
         Share share = shareRepository.findShareLink(Long.parseLong(id), userId);
         if (share == null) {
@@ -92,10 +87,7 @@ public class ShareServiceImpl implements ShareService {
         } else if (share.getTimeout() != 0 && share.getCreateTime().plusDays(share.getTimeout()).isBefore(LocalDateTime.now())) {
             throw new NetdiskException(E.SHARE_TIMEOUT);
         }
-        return StrUtil.format(shareProperties.getUrlMode(), Map.of(
-                "code", share.getCode(),
-                "pwd", share.getPassword()
-        ));
+        return new LinkInfoDTO(share.getCode(), share.getPassword());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.xiaoyao.netdisk.file.service;
 
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
+import com.xiaoyao.netdisk.file.dto.LinkInfoDTO;
 import com.xiaoyao.netdisk.file.dto.ListSharesDTO;
 
 import java.util.List;
@@ -12,23 +13,23 @@ public interface ShareService {
     ListSharesDTO listShares();
 
     /**
-     * 创建分享并返回分享链接。
+     * 创建分享并返回分享链接的信息。
      *
      * @param name     分享的名称
      * @param password 分享的提取码
      * @param timeout  分享的有效时间，单位为天
      * @param fileList 文件列表
-     * @return 分享链接
+     * @return 分享链接信息
      */
-    String createShare(String name, String password, int timeout, List<Long> fileList);
+    LinkInfoDTO createShare(String name, String password, int timeout, List<Long> fileList);
 
     /**
-     * 获取分享的分享链接。
+     * 获取分享的分享链接信息。
      *
      * @param id 分享的id
-     * @return 分享链接
+     * @return 分享链接的信息
      */
-    String getShareLink(String id);
+    LinkInfoDTO getShareLink(String id);
 
     /**
      * 删除分享。

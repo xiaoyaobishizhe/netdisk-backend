@@ -257,6 +257,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         .select(UserFile::getId,
                                 UserFile::getPath,
                                 UserFile::getName)
+                        .eq(UserFile::getIsDeleted, false)
                         .in(UserFile::getId, ids))
                 .forEach(file -> result.put(file.getId(), file.getPath() + file.getName() + "/"));
         return result;
@@ -270,6 +271,7 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                         UserFile::getIsFolder,
                         UserFile::getSize,
                         UserFile::getUpdateTime)
+                .eq(UserFile::getIsDeleted, false)
                 .in(UserFile::getId, ids));
     }
 }
