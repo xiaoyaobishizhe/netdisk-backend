@@ -11,6 +11,7 @@ import com.xiaoyao.netdisk.file.dto.ListSharesDTO;
 import com.xiaoyao.netdisk.file.properties.ShareProperties;
 import com.xiaoyao.netdisk.file.repository.ShareRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
+import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.Share;
 import com.xiaoyao.netdisk.file.service.ShareService;
 import com.xiaoyao.netdisk.file.service.UserFileService;
@@ -141,5 +142,46 @@ public class ShareServiceImpl implements ShareService {
             throw new NetdiskException(E.SHARE_NOT_EXIST);
         }
         return userId;
+    }
+
+    @Override
+    public void save(String token, List<Long> ids, String parentId) {
+        Long pid = parentId == null ? null : Long.parseLong(parentId);
+        long userId = TokenInterceptor.USER_ID.get();
+        List<Long> fileList = shareRepository.getFileList(token);
+
+        List<Long> t = new ArrayList<>(fileList);
+        t.addAll(ids);
+        Map<Long, String> pathTable = userFileRepository.findPathByIds(t);
+        List<String> paths = fileList.stream().filter(pathTable::containsKey).map(pathTable::get).toList();
+        // 只要有一个不在允许的范围下就报错
+        if (!ids.stream().allMatch(id -> paths.stream().anyMatch(pathTable.get(id)::startsWith))) {
+            throw new NetdiskException(E.PERMISSION_DENIED);
+        }
+
+        List<UserFileTreeNode> trees = userFileRepository.findUserFileTrees(ids, false, null);
+
+        // 确保文件都在同一路径下
+        if (trees.stream()
+                .map(node -> node.getValue().getParentId() == null ? 0 : node.getValue().getParentId())
+                .distinct()
+                .count() != 1) {
+            throw new NetdiskException(E.FILE_NOT_SAME_PATH);
+        }
+
+        // 确保所有名称在目标文件夹下都不存在
+        if (userFileRepository.isNameExistInParent(pid, trees.stream().map(node -> node.getValue().getName()).toList(), userId)) {
+            throw new NetdiskException(E.FILE_NAME_ALREADY_EXIST);
+        }
+
+        // 重新组装文件从属关系
+        String path = pid == null ? "/" : userFileRepository.getFolderFullPath(pid, userId);
+        trees.forEach(tree -> {
+            tree.getValue().setParentId(pid);
+            tree.refreshIdAndPathDeeply(path, true);
+            tree.refreshUserIdDeeply(userId);
+        });
+
+        userFileRepository.save(trees.stream().flatMap(tree -> tree.collectAll().stream()).toList());
     }
 }

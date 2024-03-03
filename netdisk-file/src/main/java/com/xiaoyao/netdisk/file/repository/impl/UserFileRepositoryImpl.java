@@ -152,18 +152,18 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public List<UserFileTreeNode> findUserFileTrees(List<Long> ids, boolean isDeleted, long userId) {
+    public List<UserFileTreeNode> findUserFileTrees(List<Long> ids, boolean isDeleted, Long userId) {
         // TODO 优化查询字段，而不是一律查询所有字段
         List<UserFileTreeNode> result = new ArrayList<>();
         userFileMapper.selectList(lambdaQuery(UserFile.class)
-                .eq(UserFile::getUserId, userId)
+                .eq(userId != null, UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, isDeleted)
                 // 只能查询回收站中的根节点树
                 .isNull(isDeleted, UserFile::getParentId)
                 .in(UserFile::getId, ids)).forEach(root -> {
             if (root.getIsFolder()) {
                 result.add(composeUserFileTree(root, userFileMapper.selectList(lambdaQuery(UserFile.class)
-                        .eq(UserFile::getUserId, userId)
+                        .eq(userId != null, UserFile::getUserId, userId)
                         .eq(UserFile::getIsDeleted, isDeleted)
                         .likeRight(UserFile::getPath, root.getPath() + root.getName() + "/"))));
             } else {

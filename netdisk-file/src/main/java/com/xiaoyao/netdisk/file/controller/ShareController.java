@@ -66,4 +66,13 @@ public class ShareController {
                                @Pattern(regexp = "^\\d{1,19}$") String parentId) {
         return R.ok(shareService.list(token, parentId));
     }
+
+    @PostMapping("/save")
+    public R<Void> save(
+            @NotNull @Length(min = 100, max = 100) String token,
+            @Size(min = 1) String[] ids,
+            @Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
+        shareService.save(token, Arrays.stream(ids).map(Long::parseLong).toList(), parentId);
+        return R.ok();
+    }
 }

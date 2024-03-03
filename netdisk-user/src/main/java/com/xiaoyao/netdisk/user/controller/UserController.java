@@ -19,7 +19,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PutMapping
+    @PostMapping("/register")
     public R<Void> register(@NotNull @Length(min = 6, max = 16) String username,
                             @NotNull @Length(min = 6, max = 16) String password) {
         userService.register(username, password);

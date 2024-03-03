@@ -33,7 +33,7 @@ public interface ShareService {
     /**
      * 删除分享。
      *
-     * @param ids 分享的id
+     * @param ids 分享的id列表
      */
     void deleteShare(List<String> ids);
 
@@ -62,4 +62,13 @@ public interface ShareService {
      * @return 分享者的用户id
      */
     long getUserId(String code);
+
+    /**
+     * 将分享中的文件保存到自己的网盘中。
+     *
+     * @param token    访问token
+     * @param ids      分享的id列表
+     * @param parentId 要保持到的父文件夹id
+     */
+    void save(String token, List<Long> ids, String parentId);
 }

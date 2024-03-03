@@ -65,6 +65,20 @@ public class UserFileTreeNode {
     }
 
     /**
+     * 刷新所有节点的用户id
+     *
+     * @param userId 用户id
+     */
+    public void refreshUserIdDeeply(long userId) {
+        doRefreshUserIdDeeply(this, userId);
+    }
+
+    private void doRefreshUserIdDeeply(UserFileTreeNode node, long userId) {
+        node.value.setUserId(userId);
+        node.getChildren().forEach(child -> doRefreshUserIdDeeply(child, userId));
+    }
+
+    /**
      * 收集当前节点树中的所有文件夹。
      *
      * @return 用户文件列表

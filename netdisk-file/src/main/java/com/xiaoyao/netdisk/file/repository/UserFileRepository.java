@@ -137,7 +137,7 @@ public interface UserFileRepository {
      * @param userId    用户id
      * @return 文件树列表，如果没有文件树则返回空列表
      */
-    List<UserFileTreeNode> findUserFileTrees(List<Long> ids, boolean isDeleted, long userId);
+    List<UserFileTreeNode> findUserFileTrees(List<Long> ids, boolean isDeleted, Long userId);
 
     /**
      * 更新根节点的父文件夹id，同时更新所有节点的路径。
