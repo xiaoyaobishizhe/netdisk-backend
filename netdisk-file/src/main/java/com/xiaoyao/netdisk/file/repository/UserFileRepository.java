@@ -3,6 +3,7 @@ package com.xiaoyao.netdisk.file.repository;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserFileRepository {
     /**
@@ -72,10 +73,10 @@ public interface UserFileRepository {
      *
      * @param parentId   文件夹id
      * @param onlyFolder 是否只列出文件夹
-     * @param userId     用户id
+     * @param userId     用户id，如果为null则表示获取所有用户的文件
      * @return 如果文件夹不存在则返回空列表
      */
-    List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, long userId);
+    List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, Long userId);
 
     /**
      * 列出所有回收站中的根节点文件。
@@ -166,4 +167,20 @@ public interface UserFileRepository {
      * @param tree 文件树
      */
     void updateNameAndPath(UserFileTreeNode tree);
+
+    /**
+     * 获取指定id的文件路径。
+     *
+     * @param ids 文件id列表
+     * @return 文件路径表
+     */
+    Map<Long, String> findPathByIds(List<Long> ids);
+
+    /**
+     * 获取指定id的文件列表。
+     *
+     * @param ids 文件id列表
+     * @return 文件列表
+     */
+    List<UserFile> findListByIds(List<Long> ids);
 }

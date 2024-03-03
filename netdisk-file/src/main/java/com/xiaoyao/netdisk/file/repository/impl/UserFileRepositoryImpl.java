@@ -8,7 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaUpdate;
@@ -85,14 +87,14 @@ public class UserFileRepositoryImpl implements UserFileRepository {
     }
 
     @Override
-    public List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, long userId) {
+    public List<UserFile> findListByParentId(Long parentId, boolean onlyFolder, Long userId) {
         return userFileMapper.selectList(lambdaQuery(UserFile.class)
                 .select(UserFile::getId,
                         UserFile::getName,
                         UserFile::getIsFolder,
                         UserFile::getSize,
                         UserFile::getUpdateTime)
-                .eq(UserFile::getUserId, userId)
+                .eq(userId != null, UserFile::getUserId, userId)
                 .eq(UserFile::getIsDeleted, false)
                 .eq(parentId != null, UserFile::getParentId, parentId).isNull(parentId == null, UserFile::getParentId)
                 .eq(onlyFolder, UserFile::getIsFolder, true));
@@ -246,5 +248,28 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .set(UserFile::getUpdateTime, LocalDateTime.now())
                 .eq(UserFile::getId, node.getValue().getId()));
         updateChildPath(node);
+    }
+
+    @Override
+    public Map<Long, String> findPathByIds(List<Long> ids) {
+        Map<Long, String> result = new HashMap<>();
+        userFileMapper.selectList(lambdaQuery(UserFile.class)
+                        .select(UserFile::getId,
+                                UserFile::getPath,
+                                UserFile::getName)
+                        .in(UserFile::getId, ids))
+                .forEach(file -> result.put(file.getId(), file.getPath() + file.getName() + "/"));
+        return result;
+    }
+
+    @Override
+    public List<UserFile> findListByIds(List<Long> ids) {
+        return userFileMapper.selectList(lambdaQuery(UserFile.class)
+                .select(UserFile::getId,
+                        UserFile::getName,
+                        UserFile::getIsFolder,
+                        UserFile::getSize,
+                        UserFile::getUpdateTime)
+                .in(UserFile::getId, ids));
     }
 }

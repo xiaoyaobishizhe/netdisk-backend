@@ -1,6 +1,7 @@
 package com.xiaoyao.netdisk.file.controller;
 
 import com.xiaoyao.netdisk.common.exception.R;
+import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.ListSharesDTO;
 import com.xiaoyao.netdisk.file.service.ShareService;
 import jakarta.validation.constraints.NotNull;
@@ -58,5 +59,11 @@ public class ShareController {
     public R<String> accessToken(@NotNull @Length(min = 30, max = 30) String code,
                                  @NotNull @Pattern(regexp = "(^[0-9a-z]{4}$)?") String password) {
         return R.ok(shareService.getAccessToken(code, password));
+    }
+
+    @GetMapping("/list")
+    public R<FileListDTO> list(@NotNull @Length(min = 100, max = 100) String token,
+                               @Pattern(regexp = "^\\d{1,19}$") String parentId) {
+        return R.ok(shareService.list(token, parentId));
     }
 }

@@ -13,6 +13,7 @@ import com.xiaoyao.netdisk.file.repository.ShareRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.entity.Share;
 import com.xiaoyao.netdisk.file.service.ShareService;
+import com.xiaoyao.netdisk.file.service.UserFileService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,12 +26,14 @@ public class ShareServiceImpl implements ShareService {
     private final ShareRepository shareRepository;
     private final UserFileRepository userFileRepository;
     private final ShareProperties shareProperties;
+    private final UserFileService userFileService;
 
     public ShareServiceImpl(ShareRepository shareRepository, UserFileRepository userFileRepository,
-                            ShareProperties shareProperties) {
+                            ShareProperties shareProperties, UserFileService userFileService) {
         this.shareRepository = shareRepository;
         this.userFileRepository = userFileRepository;
         this.shareProperties = shareProperties;
+        this.userFileService = userFileService;
     }
 
     @Override
@@ -109,7 +112,26 @@ public class ShareServiceImpl implements ShareService {
 
     @Override
     public FileListDTO list(String token, String parentId) {
-        return null;
+        Long pid = parentId == null ? null : Long.parseLong(parentId);
+        List<Long> ids = shareRepository.getFileList(token);
+
+        if (pid == null) {
+            return userFileService.list(ids);
+        }
+
+        // 如果目标文件夹路径在这些文件夹路径下则允许访问，否则拒绝访问。
+        List<Long> t = new ArrayList<>(ids);
+        t.add(pid);
+        Map<Long, String> pathTable = userFileRepository.findPathByIds(t);
+        String targetPath = pathTable.get(pid);
+        List<String> paths = ids.stream().filter(pathTable::containsKey).map(pathTable::get).toList();
+        if (paths.isEmpty()) {
+            throw new NetdiskException(E.SHARE_FILE_DELETED);
+        } else if (paths.stream().noneMatch(targetPath::startsWith)) {
+            throw new NetdiskException(E.PERMISSION_DENIED);
+        }
+
+        return userFileService.list(parentId, false);
     }
 
     @Override

@@ -10,9 +10,18 @@ public interface UserFileService {
      * 获取指定文件夹下的文件列表，如果parentId为空，则获取根目录下的文件列表。
      *
      * @param parentId 父文件夹id
+     * @param isSelf   是否是自己的文件
      * @return 文件列表
      */
-    FileListDTO list(String parentId);
+    FileListDTO list(String parentId, boolean isSelf);
+
+    /**
+     * 获取指定id的文件列表。
+     *
+     * @param ids 文件id列表
+     * @return 文件列表
+     */
+    FileListDTO list(List<Long> ids);
 
     /**
      * 获取指定文件夹下的子文件夹列表，如果parentId为空，则获取根目录下的文件夹列表。
@@ -33,8 +42,8 @@ public interface UserFileService {
     /**
      * 重命名文件或文件夹，如果新名称已存在则会自动生成一个不存在的名称。
      *
-     * @param id 文件或文件夹id
-     * @param name   新名称
+     * @param id   文件或文件夹id
+     * @param name 新名称
      */
     void rename(String id, String name);
 

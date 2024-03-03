@@ -73,7 +73,7 @@ public class FileController {
 
     @GetMapping("/list")
     public R<FileListDTO> list(@Pattern(regexp = "(^\\d{1,19}$)?") String parentId) {
-        return R.ok(userFileService.list(parentId));
+        return R.ok(userFileService.list(parentId, true));
     }
 
     @GetMapping("/list-folder")

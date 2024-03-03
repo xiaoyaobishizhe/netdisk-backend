@@ -22,4 +22,12 @@ public interface ShareRepository {
      * @return 分享者的用户id
      */
     Long getUserIdByCode(String code);
+
+    /**
+     * 获取分享的文件列表。
+     *
+     * @param token 分享的token
+     * @return 文件id列表
+     */
+    List<Long> getFileList(String token);
 }

@@ -67,4 +67,11 @@ public class ShareRepositoryImpl implements ShareRepository {
                 .eq(Share::getCode, code));
         return share == null ? null : share.getUserId();
     }
+
+    @Override
+    public List<Long> getFileList(String token) {
+        return shareMapper.selectOne(lambdaQuery(Share.class)
+                .select(Share::getFileList)
+                .eq(Share::getToken, token)).getFileList();
+    }
 }

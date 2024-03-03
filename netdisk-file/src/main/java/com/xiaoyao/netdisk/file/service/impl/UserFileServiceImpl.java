@@ -27,10 +27,28 @@ public class UserFileServiceImpl implements UserFileService {
     }
 
     @Override
-    public FileListDTO list(String parentId) {
-        long userId = TokenInterceptor.USER_ID.get();
+    public FileListDTO list(String parentId, boolean isSelf) {
+        Long userId = isSelf ? TokenInterceptor.USER_ID.get() : null;
         List<UserFile> files = userFileRepository.findListByParentId(
                 StrUtil.isBlank(parentId) ? null : Long.parseLong(parentId), false, userId);
+        FileListDTO dto = new FileListDTO();
+        List<FileListDTO.Item> items = new ArrayList<>();
+        dto.setFiles(items);
+        for (UserFile file : files) {
+            FileListDTO.Item item = new FileListDTO.Item();
+            item.setId(file.getId().toString());
+            item.setName(file.getName());
+            item.setFolder(file.getIsFolder());
+            item.setSize(file.getSize());
+            item.setUpdateTime(DateUtil.format(file.getUpdateTime(), "yyyy-MM-dd HH:mm:ss"));
+            items.add(item);
+        }
+        return dto;
+    }
+
+    @Override
+    public FileListDTO list(List<Long> ids) {
+        List<UserFile> files = userFileRepository.findListByIds(ids);
         FileListDTO dto = new FileListDTO();
         List<FileListDTO.Item> items = new ArrayList<>();
         dto.setFiles(items);
