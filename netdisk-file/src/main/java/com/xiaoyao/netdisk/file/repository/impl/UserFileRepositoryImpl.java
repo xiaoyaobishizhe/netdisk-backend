@@ -274,4 +274,14 @@ public class UserFileRepositoryImpl implements UserFileRepository {
                 .eq(UserFile::getIsDeleted, false)
                 .in(UserFile::getId, ids));
     }
+
+    @Override
+    public UserFile getStorageFileIdAndName(long id, long userId) {
+        return userFileMapper.selectOne(lambdaQuery(UserFile.class)
+                .select(UserFile::getStorageFileId,
+                        UserFile::getName)
+                .eq(UserFile::getUserId, userId)
+                .eq(UserFile::getIsDeleted, false)
+                .eq(UserFile::getId, id));
+    }
 }

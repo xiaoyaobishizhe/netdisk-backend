@@ -6,24 +6,38 @@ import cn.hutool.core.util.StrUtil;
 import com.xiaoyao.netdisk.common.exception.E;
 import com.xiaoyao.netdisk.common.exception.NetdiskException;
 import com.xiaoyao.netdisk.common.web.interceptor.TokenInterceptor;
+import com.xiaoyao.netdisk.file.dto.DownloadDTO;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.FolderListDTO;
+import com.xiaoyao.netdisk.file.properties.MinioProperties;
+import com.xiaoyao.netdisk.file.repository.StorageFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileRepository;
 import com.xiaoyao.netdisk.file.repository.UserFileTreeNode;
 import com.xiaoyao.netdisk.file.repository.entity.UserFile;
 import com.xiaoyao.netdisk.file.service.UserFileService;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MinioClient;
+import io.minio.http.Method;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserFileServiceImpl implements UserFileService {
     private final UserFileRepository userFileRepository;
+    private final StorageFileRepository storageFileRepository;
+    private final MinioClient minioClient;
+    private final MinioProperties minioProperties;
 
-    public UserFileServiceImpl(UserFileRepository userFileRepository) {
+    public UserFileServiceImpl(UserFileRepository userFileRepository, StorageFileRepository storageFileRepository,
+                               MinioClient minioClient, MinioProperties minioProperties) {
         this.userFileRepository = userFileRepository;
+        this.storageFileRepository = storageFileRepository;
+        this.minioClient = minioClient;
+        this.minioProperties = minioProperties;
     }
 
     @Override
@@ -205,5 +219,24 @@ public class UserFileServiceImpl implements UserFileService {
         });
 
         userFileRepository.updateParentIdAndPath(trees, pid);
+    }
+
+    @Override
+    public DownloadDTO download(String id) {
+        long userId = TokenInterceptor.USER_ID.get();
+        UserFile userFile = userFileRepository.getStorageFileIdAndName(Long.parseLong(id), userId);
+        String path = storageFileRepository.getPath(userFile.getStorageFileId());
+        try {
+            DownloadDTO dto = new DownloadDTO();
+            dto.setUrl(minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .bucket(minioProperties.getBucket()).object("/" + path)
+                    .method(Method.GET)
+                    .expiry(1, TimeUnit.DAYS)
+                    .build()));
+            dto.setFilename(userFile.getName());
+            return dto;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

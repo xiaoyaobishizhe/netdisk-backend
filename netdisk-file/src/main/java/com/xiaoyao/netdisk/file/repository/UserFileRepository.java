@@ -183,4 +183,6 @@ public interface UserFileRepository {
      * @return 文件列表
      */
     List<UserFile> findListByIds(List<Long> ids);
+
+    UserFile getStorageFileIdAndName(long id, long userId);
 }

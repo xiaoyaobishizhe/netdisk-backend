@@ -1,5 +1,6 @@
 package com.xiaoyao.netdisk.file.service;
 
+import com.xiaoyao.netdisk.file.dto.DownloadDTO;
 import com.xiaoyao.netdisk.file.dto.FileListDTO;
 import com.xiaoyao.netdisk.file.dto.FolderListDTO;
 
@@ -62,4 +63,6 @@ public interface UserFileService {
      * @param parentId 父文件夹id，如果为根路径则值为null
      */
     void move(List<String> ids, String parentId);
+
+    DownloadDTO download(String id);
 }

@@ -27,4 +27,11 @@ public class StorageFileRepositoryImpl implements StorageFileRepository {
                         StorageFile::getSize)
                 .eq(StorageFile::getIdentifier, identifier));
     }
+
+    @Override
+    public String getPath(Long id) {
+        return storageFileMapper.selectOne(lambdaQuery(StorageFile.class)
+                .select(StorageFile::getPath)
+                .eq(StorageFile::getId, id)).getPath();
+    }
 }

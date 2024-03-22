@@ -1,10 +1,7 @@
 package com.xiaoyao.netdisk.file.controller;
 
 import com.xiaoyao.netdisk.common.exception.R;
-import com.xiaoyao.netdisk.file.dto.ApplyUploadChunkDTO;
-import com.xiaoyao.netdisk.file.dto.FileListDTO;
-import com.xiaoyao.netdisk.file.dto.FolderListDTO;
-import com.xiaoyao.netdisk.file.dto.ShardingDTO;
+import com.xiaoyao.netdisk.file.dto.*;
 import com.xiaoyao.netdisk.file.service.FileUploadService;
 import com.xiaoyao.netdisk.file.service.RecycleBinService;
 import com.xiaoyao.netdisk.file.service.UserFileService;
@@ -99,5 +96,10 @@ public class FileController {
     public R<Void> delete(@Size(min = 1) String[] ids) {
         recycleBinService.delete(Arrays.stream(ids).toList());
         return R.ok();
+    }
+
+    @PostMapping("/download")
+    public R<DownloadDTO> download(@Pattern(regexp = "(^\\d{1,19}$)?") String id) {
+        return R.ok(userFileService.download(id));
     }
 }
